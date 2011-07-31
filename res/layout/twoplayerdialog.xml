@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.anthonyatkins.simplebackgammon.view.TwoPlayerDialogView
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res/com.anthonyatkins.simplebackgammon"
+  android:id="@+id/twoplayerdialog"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:orientation="vertical"
+  android:padding="10dp"
+  android:background="#00ffffff"
+  >
+  <com.anthonyatkins.simplebackgammon.view.RotateableTextView 
+  	android:id="@+id/reversed_view" 
+  	android:layout_width="fill_parent"
+  	android:textSize="30sp"
+  	android:layout_height="wrap_content"
+  	android:text="this is rotated text and a fairly long bit of it, just to check the text wrapping and all that fancy stuff..."
+  	android:textColor="#ffffff"
+  	android:layout_weight="1"
+  	android:gravity="bottom|center_horizontal"
+	app:rotate="true"
+  	>
+  </com.anthonyatkins.simplebackgammon.view.RotateableTextView>
+  <com.anthonyatkins.simplebackgammon.view.RotateableTextView 
+  	android:textSize="30sp"
+  	android:id="@+id/normal_view"
+  	android:layout_width="fill_parent"
+  	android:layout_height="wrap_content"
+  	android:text="this should be normal."
+  	android:textColor="#ffffff"
+  	android:layout_weight="1"
+  	android:gravity="bottom|center_horizontal"
+  	app:rotate="false"
+  	>
+  </com.anthonyatkins.simplebackgammon.view.RotateableTextView>
+</com.anthonyatkins.simplebackgammon.view.TwoPlayerDialogView>

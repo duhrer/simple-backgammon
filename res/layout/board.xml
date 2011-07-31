@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.anthonyatkins.simplebackgammon.view.GameView  
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res/com.blogspot.tonyatkins.simplebackgammon"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<com.anthonyatkins.simplebackgammon.view.BoardView
+	  android:layout_width="fill_parent"
+	  android:layout_height="fill_parent">
+		<com.anthonyatkins.simplebackgammon.view.PitView android:id="@+id/left_pit">
+			<com.anthonyatkins.simplebackgammon.view.SlotBankView android:id="@+id/left_bank_top_slot">
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_6"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_7"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_8"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_9"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_10"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_11"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+			</com.anthonyatkins.simplebackgammon.view.SlotBankView>
+			<com.anthonyatkins.simplebackgammon.view.DiceView android:id="@+id/white_dice_view">
+			</com.anthonyatkins.simplebackgammon.view.DiceView>
+			<com.anthonyatkins.simplebackgammon.view.SlotBankView android:id="@+id/left_bank_bottom_slot">
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_12"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_13"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_14"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_15"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_16"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_17"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+			</com.anthonyatkins.simplebackgammon.view.SlotBankView>
+		</com.anthonyatkins.simplebackgammon.view.PitView>
+		<com.anthonyatkins.simplebackgammon.view.PitView android:id="@+id/right_pit">
+			<com.anthonyatkins.simplebackgammon.view.SlotBankView android:id="@+id/right_bank_top_slot">
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_0"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_1"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_2"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_3"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_4"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_5"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+			</com.anthonyatkins.simplebackgammon.view.SlotBankView>
+			<com.anthonyatkins.simplebackgammon.view.DiceView android:id="@+id/black_dice_view">
+			</com.anthonyatkins.simplebackgammon.view.DiceView>
+			<com.anthonyatkins.simplebackgammon.view.SlotBankView android:id="@+id/right_bank_bottom_slot">
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_18"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_19"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_20"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_21"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_22"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+				<com.anthonyatkins.simplebackgammon.view.SimpleSlotView android:id="@+id/slot_23"></com.anthonyatkins.simplebackgammon.view.SimpleSlotView>
+			</com.anthonyatkins.simplebackgammon.view.SlotBankView>
+		</com.anthonyatkins.simplebackgammon.view.PitView>
+		<com.anthonyatkins.simplebackgammon.view.CombinedBarView>
+			<com.anthonyatkins.simplebackgammon.view.DugoutView android:id="@+id/white_dugout">
+			</com.anthonyatkins.simplebackgammon.view.DugoutView>	  
+			<com.anthonyatkins.simplebackgammon.view.BarView android:id="@+id/bar">
+			</com.anthonyatkins.simplebackgammon.view.BarView>	  
+			<com.anthonyatkins.simplebackgammon.view.DugoutView android:id="@+id/white_dugout">
+			</com.anthonyatkins.simplebackgammon.view.DugoutView>	  
+		</com.anthonyatkins.simplebackgammon.view.CombinedBarView>	  
+	</com.anthonyatkins.simplebackgammon.view.BoardView>
+</com.anthonyatkins.simplebackgammon.view.GameView>

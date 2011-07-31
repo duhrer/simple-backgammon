@@ -1,0 +1,43 @@
+package com.anthonyatkins.simplebackgammon.model;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
+public class Moves extends ArrayList<Move> implements Comparable {
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result;
+		return result;
+	}
+
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (!(obj instanceof Moves))
+			return false;
+		Moves other = (Moves) obj;
+		
+		if (this.size() != other.size()) return false;
+		
+		Iterator<Move> moveIterator = this.iterator();
+		Iterator<Move> otherMoveIterator = this.iterator();
+		
+		while (moveIterator.hasNext()) {
+			Move myMove = moveIterator.next();
+			Move otherMove = otherMoveIterator.next();
+			
+			if (!myMove.equals(otherMove)) { return false; }
+		}
+		
+		return true;
+	}
+
+	public int compareTo(Object another) {
+		return 0;
+	}
+	
+	
+}
