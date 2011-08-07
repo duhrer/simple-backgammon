@@ -170,15 +170,15 @@ public class SimpleBackgammon extends Activity {
 	}
 	
 	
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		if (savedInstanceState != null) { 
-			restoreData(savedInstanceState);
-			gameController.setGameState(Game.LOAD_SAVE);
-		}
-		else { 
-			gameController.setGameState(Game.STARTUP); 
-		}
-		
-		super.onRestoreInstanceState(savedInstanceState);
-	}	
+//	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+//		if (savedInstanceState != null) { 
+//			restoreData(savedInstanceState);
+//			gameController.setGameState(Game.LOAD_SAVE);
+//		}
+//		else { 
+//			gameController.setGameState(Game.STARTUP); 
+//		}
+//		
+//		super.onRestoreInstanceState(savedInstanceState);
+//	}	
 }

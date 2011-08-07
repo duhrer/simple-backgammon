@@ -1,0 +1,11 @@
+
+syntax: regexp
+^default\.properties$
+syntax: regexp
+^bin$
+syntax: regexp
+^\.settings$
+syntax: regexp
+^\.classpath$
+syntax: regexp
+^\.project$
