@@ -7,12 +7,12 @@ import android.view.ViewGroup;
 import com.anthonyatkins.simplebackgammon.model.Game;
 
 public class GameView extends ViewGroup {
-	public Game game;
+	private Game game;
 
-	public BoardView boardView = null;
-	public TwoPlayerDialog twoPlayerDialog = null;
+	private BoardView boardView = null;
+	private TwoPlayerDialog twoPlayerDialog = null;
 	
-	public Context context;
+	private Context context;
 	
 	private Palette theme = new DefaultPalette();
 	
@@ -22,9 +22,9 @@ public class GameView extends ViewGroup {
 		setLayoutParams(params);
 		
 		this.context = context;
-		this.game = game;
-		this.boardView = new BoardView(context, game.board, theme);
-		addView(boardView);
+		this.setGame(game);
+		this.setBoardView(new BoardView(context, game.getBoard(), theme));
+		addView(getBoardView());
 	}
 
 	public GameView(Context context, AttributeSet attrs) {
@@ -34,20 +34,36 @@ public class GameView extends ViewGroup {
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 		
-		if (boardView != null) {
-			boardView.setMinimumWidth(getMeasuredWidth());
-			boardView.setMinimumHeight(getMeasuredHeight());
-			boardView.measure(getMeasuredWidth(), getMeasuredHeight());
+		if (getBoardView() != null) {
+			getBoardView().setMinimumWidth(getMeasuredWidth());
+			getBoardView().setMinimumHeight(getMeasuredHeight());
+			getBoardView().measure(getMeasuredWidth(), getMeasuredHeight());
 		}
 	}
 
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
-		if (boardView != null) {
-			boardView.layout(0, 0, boardView.getMeasuredWidth(), boardView.getMeasuredHeight());
+		if (getBoardView() != null) {
+			getBoardView().layout(0, 0, getBoardView().getMeasuredWidth(), getBoardView().getMeasuredHeight());
 		}
 	}
 
 	public Palette getTheme() {
 		return theme;
+	}
+
+	public Game getGame() {
+		return game;
+	}
+
+	public void setGame(Game game) {
+		this.game = game;
+	}
+
+	public BoardView getBoardView() {
+		return boardView;
+	}
+
+	public void setBoardView(BoardView boardView) {
+		this.boardView = boardView;
 	}
 }

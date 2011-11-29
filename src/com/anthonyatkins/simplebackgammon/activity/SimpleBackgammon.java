@@ -3,6 +3,7 @@ package com.anthonyatkins.simplebackgammon.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.ContextMenu;
@@ -17,6 +18,8 @@ import android.view.WindowManager;
 import com.anthonyatkins.simplebackgammon.Constants;
 import com.anthonyatkins.simplebackgammon.R;
 import com.anthonyatkins.simplebackgammon.controller.GameController;
+import com.anthonyatkins.simplebackgammon.db.DbOpenHelper;
+import com.anthonyatkins.simplebackgammon.db.DbUtils;
 import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.SavedGame;
 import com.anthonyatkins.simplebackgammon.view.GameView;
@@ -33,6 +36,7 @@ public class SimpleBackgammon extends Activity {
 	private static final int MENU_PREFS = 3;
 	public final static int MENU_EXIT = 99;
 	public static final String NAMESPACE = "android";
+	public static final int ACTIVITY_CODE = 111;
 	
 	Game game = null;
 	GameView gameView = null;
@@ -53,16 +57,16 @@ public class SimpleBackgammon extends Activity {
     	super.onCreate(savedInstanceState);
     	    	
     	this.game = new Game();
-        this.gameView = new GameView(this,game);
-		gameController = new GameController(gameView);
+    	this.gameView = new GameView(this,game);
+    	gameController = new GameController(gameView);
 		if (savedInstanceState != null) { 
 			restoreData(savedInstanceState);
-			gameController.setGameState(Game.LOAD_SAVE);
+			gameController.setGameState(game.getState()); 
 		}
 		else { 
 			gameController.setGameState(Game.STARTUP); 
 		}
-
+		
 		setContentView(gameView);
     }
     
@@ -75,23 +79,21 @@ public class SimpleBackgammon extends Activity {
 	}
 
 	private void saveData(Bundle outState) {
-		outState.putIntegerArrayList(BOARD_STATE, game.board.getBoardState());
-		if (game.getActivePlayer() != null) { 
-			outState.putInt(ACTIVE_PLAYER, game.getActivePlayer().color); 
-			outState.putStringArrayList(ACTIVE_PLAYER_DICE_STATE, game.getActivePlayer().getDiceState());
-			outState.putStringArrayList(INACTIVE_PLAYER_DICE_STATE, game.getInactivePlayer().getDiceState());
-		}
-		outState.putInt(GAME_STATE, game.getState());
+		// FIXME: save the game state to the database
+		
+		// FIXME: store the game ID in the out bundle, we'll try to restore that if we can.
 	}
 
-	private void restoreData(Bundle savedInstanceState) {
-		SavedGame savedGame = new SavedGame(savedInstanceState.getInt(GAME_STATE),
-											savedInstanceState.getInt(ACTIVE_PLAYER), 
-											savedInstanceState.getIntegerArrayList(BOARD_STATE),
-											savedInstanceState.getStringArrayList(ACTIVE_PLAYER_DICE_STATE),
-											savedInstanceState.getStringArrayList(INACTIVE_PLAYER_DICE_STATE));
-											
-		game.setSavedGame(savedGame);
+	private int restoreData(Bundle savedInstanceState) {
+		if (savedInstanceState != null) {
+			int gameId = savedInstanceState.getInt(Game._ID);
+			DbOpenHelper dbHelper = new DbOpenHelper(this);
+			SQLiteDatabase db = dbHelper.getReadableDatabase();
+			Game restoredGame = DbUtils.getGameById(gameId, db);
+			game.clone(restoredGame);
+		}
+		
+		return Game.STARTUP;
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -152,7 +154,7 @@ public class SimpleBackgammon extends Activity {
 	private boolean handleUndo() {
 		switch (game.getState()) {
 			case Game.MOVE_PICK_DEST:
-				gameView.game.setSourceSlot(null);
+				gameView.getGame().setSourceSlot(null);
 				gameController.setGameState(Game.MOVE_PICK_SOURCE);
 				return true;
 	

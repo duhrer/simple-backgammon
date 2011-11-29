@@ -7,9 +7,9 @@ import android.view.ViewGroup;
 import com.anthonyatkins.simplebackgammon.model.Pit;
 
 public class PitView extends ViewGroup{
-	public SlotBankView topSlotBankView;
-	public SlotBankView bottomSlotBankView; 
-	DiceView diceView;
+	private SlotBankView topSlotBankView;
+	private SlotBankView bottomSlotBankView; 
+	private DiceView diceView;
 	private Pit pit;
 	private Palette theme;
 	
@@ -24,12 +24,12 @@ public class PitView extends ViewGroup{
 		
 		setClipChildren(false);
 		setClipToPadding(false);
-		topSlotBankView = new SlotBankView(context,pit.topSlotBank);
-		addView(topSlotBankView);
-		bottomSlotBankView = new SlotBankView(context,pit.bottomSlotBank);
-		addView(bottomSlotBankView);
-		diceView = new DiceView(context, pit.dice,theme);
-		addView(diceView);
+		setTopSlotBankView(new SlotBankView(context,pit.topSlotBank));
+		addView(getTopSlotBankView());
+		setBottomSlotBankView(new SlotBankView(context,pit.bottomSlotBank));
+		addView(getBottomSlotBankView());
+		setDiceView(new DiceView(context, pit.dice,theme));
+		addView(getDiceView());
 		
 		this.setBackgroundColor(theme.pitPaint.getColor());
 	}
@@ -41,25 +41,49 @@ public class PitView extends ViewGroup{
 		int slotBankWidth = widthMeasureSpec;
 		int slotBankHeight = Math.round((float) (heightMeasureSpec * 0.5));
 		int diceHeight = Math.round((float) (heightMeasureSpec * 0.2));
-		topSlotBankView.setMinimumWidth(slotBankWidth);
-		topSlotBankView.setMinimumHeight(slotBankHeight);
-		topSlotBankView.measure(slotBankWidth, slotBankHeight);
-		diceView.setMinimumWidth(widthMeasureSpec);
-		diceView.setMinimumHeight(diceHeight);
-		diceView.measure(widthMeasureSpec, diceHeight);
-		bottomSlotBankView.setMinimumWidth(slotBankWidth);
-		bottomSlotBankView.setMinimumHeight(slotBankHeight);
-		bottomSlotBankView.measure(slotBankWidth, slotBankHeight);
+		getTopSlotBankView().setMinimumWidth(slotBankWidth);
+		getTopSlotBankView().setMinimumHeight(slotBankHeight);
+		getTopSlotBankView().measure(slotBankWidth, slotBankHeight);
+		getDiceView().setMinimumWidth(widthMeasureSpec);
+		getDiceView().setMinimumHeight(diceHeight);
+		getDiceView().measure(widthMeasureSpec, diceHeight);
+		getBottomSlotBankView().setMinimumWidth(slotBankWidth);
+		getBottomSlotBankView().setMinimumHeight(slotBankHeight);
+		getBottomSlotBankView().measure(slotBankWidth, slotBankHeight);
 	}
 
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		int y = 0;
-		topSlotBankView.layout(0, 0, topSlotBankView.getMeasuredWidth(), topSlotBankView.getMeasuredHeight());
-		topSlotBankView.bringToFront();
-		y += topSlotBankView.getMeasuredHeight();
-		bottomSlotBankView.layout(0, y, bottomSlotBankView.getMeasuredWidth(), y + bottomSlotBankView.getMeasuredHeight());
-		bottomSlotBankView.bringToFront();
+		getTopSlotBankView().layout(0, 0, getTopSlotBankView().getMeasuredWidth(), getTopSlotBankView().getMeasuredHeight());
+		getTopSlotBankView().bringToFront();
+		y += getTopSlotBankView().getMeasuredHeight();
+		getBottomSlotBankView().layout(0, y, getBottomSlotBankView().getMeasuredWidth(), y + getBottomSlotBankView().getMeasuredHeight());
+		getBottomSlotBankView().bringToFront();
 		y = (int) Math.round(getMeasuredHeight() * 0.4);
-		diceView.layout(0, y, diceView.getMeasuredWidth(), y + diceView.getMeasuredHeight());
+		getDiceView().layout(0, y, getDiceView().getMeasuredWidth(), y + getDiceView().getMeasuredHeight());
+	}
+
+	public DiceView getDiceView() {
+		return diceView;
+	}
+
+	public void setDiceView(DiceView diceView) {
+		this.diceView = diceView;
+	}
+
+	public SlotBankView getBottomSlotBankView() {
+		return bottomSlotBankView;
+	}
+
+	public void setBottomSlotBankView(SlotBankView bottomSlotBankView) {
+		this.bottomSlotBankView = bottomSlotBankView;
+	}
+
+	public SlotBankView getTopSlotBankView() {
+		return topSlotBankView;
+	}
+
+	public void setTopSlotBankView(SlotBankView topSlotBankView) {
+		this.topSlotBankView = topSlotBankView;
 	}
 }

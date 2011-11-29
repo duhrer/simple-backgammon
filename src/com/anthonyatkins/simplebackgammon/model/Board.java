@@ -9,24 +9,24 @@ import android.content.Context;
 import com.anthonyatkins.simplebackgammon.Constants;
 
 public class Board {
-	public Pieces whitePieces;
-	public Pieces blackPieces;
+	private Pieces whitePieces;
+	private Pieces blackPieces;
 
 	Context context; 
 	
 	// array of play slots where 0 is the black start point and 20 is the white start point
-	public List<Slot> playSlots = new ArrayList<Slot>();
+	private List<Slot> playSlots = new ArrayList<Slot>();
 
-	public Bar bar;
+	private Bar bar;
 	
-	public Dugout whiteOut;
-	public Dugout blackOut;
+	private Dugout whiteOut;
+	private Dugout blackOut;
 	
-	public Pit leftPit;
-	public Pit rightPit;
+	private Pit leftPit;
+	private Pit rightPit;
 	
 	/* an array of piece locations */
-	int[] defaultPieceConfiguration = {0,2,0,0,0,0,-5,0,-3,0,0,0,5,-5,0,0,0,3,0,5,0,0,0,0,-2,0,0,0};
+	static int[] defaultPieceConfiguration = {0,2,0,0,0,0,-5,0,-3,0,0,0,5,-5,0,0,0,3,0,5,0,0,0,0,-2,0,0,0};
 
 	// initialize the board
 	public Board(Game game) {
@@ -41,25 +41,25 @@ public class Board {
 	}
 	
 	private void initialize(Game game) {
-		bar = new Bar(game);  // the holding slot for "bumped" pieces
-		whiteOut = new Dugout(-1, Constants.WHITE,game); // the holding slot for white pieces that have made it home
-		blackOut = new Dugout(24, Constants.BLACK,game); // ditto for black pieces
-		leftPit  = new Pit(game.getWhitePlayer().dice);
-		rightPit = new Pit(game.getBlackPlayer().dice);
-		whitePieces = game.getWhitePlayer().pieces;
-		blackPieces = game.getBlackPlayer().pieces;
+		setBar(new Bar(game));  // the holding slot for "bumped" pieces
+		setWhiteOut(new Dugout(-1, Constants.WHITE,game)); // the holding slot for white pieces that have made it home
+		setBlackOut(new Dugout(24, Constants.BLACK,game)); // ditto for black pieces
+		setLeftPit(new Pit(game.getWhitePlayer().getDice()));
+		setRightPit(new Pit(game.getBlackPlayer().getDice()));
+		whitePieces = game.getWhitePlayer().getPieces();
+		blackPieces = game.getBlackPlayer().getPieces();
 		
 		for (int a=0; a<6; a++) {
-			playSlots.add(new Slot(Slot.UP,a,game));
+			getPlaySlots().add(new Slot(Slot.UP,a,game));
 		}
 		for (int a=6; a<12; a++) {
-			playSlots.add(new Slot(Slot.UP,a,game));
+			getPlaySlots().add(new Slot(Slot.UP,a,game));
 		}
 		for (int a=12; a<18; a++) {
-			playSlots.add(new Slot(Slot.DOWN,a,game));
+			getPlaySlots().add(new Slot(Slot.DOWN,a,game));
 		}
 		for (int a=18; a<24; a++) {
-			playSlots.add(new Slot(Slot.DOWN,a,game));
+			getPlaySlots().add(new Slot(Slot.DOWN,a,game));
 		}
 	}
 
@@ -78,9 +78,9 @@ public class Board {
 	}
 	public ArrayList<Integer> getBoardState() {
 		ArrayList<Integer> boardState = new ArrayList<Integer>();
-		boardState.add(this.whiteOut.pieces.size());
+		boardState.add(this.getWhiteOut().pieces.size());
 		for (int a=0;a<=23;a++) {
-			Slot slot = this.playSlots.get(a);
+			Slot slot = this.getPlaySlots().get(a);
 			if (slot != null && slot.pieces.size() > 0) {
 				boardState.add(slot.pieces.size() * slot.pieces.first().color);
 			}
@@ -89,10 +89,10 @@ public class Board {
 			}
 		}
 		
-		boardState.add(this.blackOut.pieces.size());
+		boardState.add(this.getBlackOut().pieces.size());
 		int blackPiecesOnBar = 0;
 		int whitePiecesOnBar = 0;
-		Iterator<Piece> pieceIterator = this.bar.pieces.iterator();
+		Iterator<Piece> pieceIterator = this.getBar().pieces.iterator();
 		while (pieceIterator.hasNext()) {
 			Piece piece = pieceIterator.next();
 			if (piece.color == Constants.BLACK) { blackPiecesOnBar++; }
@@ -129,34 +129,34 @@ public class Board {
 		}
 		else {
 			// Initialize the White dugout
-			whiteOut.pieces.clear();
+			getWhiteOut().pieces.clear();
 			if (Math.abs(boardState.get(0)) > 0) {
-				whiteOut.pieces.addMultiple(Math.abs(boardState.get(0)), Constants.WHITE, 0);
+				getWhiteOut().pieces.addMultiple(Math.abs(boardState.get(0)), Constants.WHITE, 0);
 			}
 			// Initialize the playSlots
 			for (int a=0; a<24; a++) {
-				playSlots.get(a).pieces.clear();
+				getPlaySlots().get(a).pieces.clear();
 				if (Math.abs(boardState.get(a+1)) > 0) {
-					playSlots.get(a).pieces.addMultiple(Math.abs(boardState.get(a+1)),(int) Math.signum(boardState.get(a+1)),a);
+					getPlaySlots().get(a).pieces.addMultiple(Math.abs(boardState.get(a+1)),(int) Math.signum(boardState.get(a+1)),a);
 				}
 			}
 			// Initialize the Black Dugout
-			blackOut.pieces.clear();
+			getBlackOut().pieces.clear();
 			if (Math.abs(boardState.get(25)) > 0) {
-				blackOut.pieces.addMultiple(Math.abs(boardState.get(25)), Constants.BLACK, 0);
+				getBlackOut().pieces.addMultiple(Math.abs(boardState.get(25)), Constants.BLACK, 0);
 			}
 			
 			// remove any existing pieces from the bar
-			bar.pieces.clear();
+			getBar().pieces.clear();
 
 			// Initialize the bar for black pieces (slot 26)
 			if (Math.abs(boardState.get(26)) > 0) { 
-				bar.pieces.addMultiple(Math.abs(boardState.get(26)), Constants.BLACK, 0);
+				getBar().pieces.addMultiple(Math.abs(boardState.get(26)), Constants.BLACK, 0);
 			}
 
 			// Initialize the bar for white pieces (slot 27)
 			if (Math.abs(boardState.get(27)) > 0) {
-				bar.pieces.addMultiple(Math.abs(boardState.get(27)), Constants.WHITE, 0);
+				getBar().pieces.addMultiple(Math.abs(boardState.get(27)), Constants.WHITE, 0);
 			}
 		}
 		
@@ -166,16 +166,16 @@ public class Board {
 		blackPieces.clear();
 		
 		// The dugouts are easy, they can only contain one color
-		Iterator<Piece> blackOutIterator = blackOut.pieces.iterator();
+		Iterator<Piece> blackOutIterator = getBlackOut().pieces.iterator();
 		while (blackOutIterator.hasNext()) { blackPieces.add(blackOutIterator.next()); }
 
-		Iterator<Piece> whiteOutIterator = whiteOut.pieces.iterator();
+		Iterator<Piece> whiteOutIterator = getWhiteOut().pieces.iterator();
 		while (whiteOutIterator.hasNext()) { whitePieces.add(whiteOutIterator.next()); }
 		
 		
 		// The slots can contain either color, so we have to check it
 		for (int b=0; b <24; b++) {
-			Iterator<Piece> slotIterator = playSlots.get(b).pieces.iterator();
+			Iterator<Piece> slotIterator = getPlaySlots().get(b).pieces.iterator();
 			while (slotIterator.hasNext()) {
 				Piece tempPiece = slotIterator.next();
 				if (tempPiece.color == Constants.BLACK) { blackPieces.add(tempPiece); }
@@ -184,7 +184,7 @@ public class Board {
 		}
 		
 		// The bar can contain both colors, so we have to check the color
-		Iterator<Piece> slotIterator = bar.pieces.iterator();
+		Iterator<Piece> slotIterator = getBar().pieces.iterator();
 		while (slotIterator.hasNext()) {
 			Piece tempPiece = slotIterator.next();
 			if (tempPiece.color == Constants.BLACK) { blackPieces.add(tempPiece); }
@@ -197,18 +197,18 @@ public class Board {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((bar == null) ? 0 : bar.hashCode());
+		result = prime * result + ((getBar() == null) ? 0 : getBar().hashCode());
 		result = prime * result
-				+ ((blackOut == null) ? 0 : blackOut.hashCode());
+				+ ((getBlackOut() == null) ? 0 : getBlackOut().hashCode());
 		result = prime * result
 				+ ((blackPieces == null) ? 0 : blackPieces.hashCode());
-		result = prime * result + ((leftPit == null) ? 0 : leftPit.hashCode());
+		result = prime * result + ((getLeftPit() == null) ? 0 : getLeftPit().hashCode());
 		result = prime * result
-				+ ((playSlots == null) ? 0 : playSlots.hashCode());
+				+ ((getPlaySlots() == null) ? 0 : getPlaySlots().hashCode());
 		result = prime * result
-				+ ((rightPit == null) ? 0 : rightPit.hashCode());
+				+ ((getRightPit() == null) ? 0 : getRightPit().hashCode());
 		result = prime * result
-				+ ((whiteOut == null) ? 0 : whiteOut.hashCode());
+				+ ((getWhiteOut() == null) ? 0 : getWhiteOut().hashCode());
 		result = prime * result
 				+ ((whitePieces == null) ? 0 : whitePieces.hashCode());
 		return result;
@@ -223,40 +223,40 @@ public class Board {
 		if (!(obj instanceof Board))
 			return false;
 		Board other = (Board) obj;
-		if (bar == null) {
-			if (other.bar != null)
+		if (getBar() == null) {
+			if (other.getBar() != null)
 				return false;
-		} else if (!bar.equals(other.bar))
+		} else if (!getBar().equals(other.getBar()))
 			return false;
-		if (blackOut == null) {
-			if (other.blackOut != null)
+		if (getBlackOut() == null) {
+			if (other.getBlackOut() != null)
 				return false;
-		} else if (!blackOut.equals(other.blackOut))
+		} else if (!getBlackOut().equals(other.getBlackOut()))
 			return false;
 		if (blackPieces == null) {
 			if (other.blackPieces != null)
 				return false;
 		} else if (!blackPieces.equals(other.blackPieces))
 			return false;
-		if (leftPit == null) {
-			if (other.leftPit != null)
+		if (getLeftPit() == null) {
+			if (other.getLeftPit() != null)
 				return false;
-		} else if (!leftPit.equals(other.leftPit))
+		} else if (!getLeftPit().equals(other.getLeftPit()))
 			return false;
-		if (playSlots == null) {
-			if (other.playSlots != null)
+		if (getPlaySlots() == null) {
+			if (other.getPlaySlots() != null)
 				return false;
-		} else if (!playSlots.equals(other.playSlots))
+		} else if (!getPlaySlots().equals(other.getPlaySlots()))
 			return false;
-		if (rightPit == null) {
-			if (other.rightPit != null)
+		if (getRightPit() == null) {
+			if (other.getRightPit() != null)
 				return false;
-		} else if (!rightPit.equals(other.rightPit))
+		} else if (!getRightPit().equals(other.getRightPit()))
 			return false;
-		if (whiteOut == null) {
-			if (other.whiteOut != null)
+		if (getWhiteOut() == null) {
+			if (other.getWhiteOut() != null)
 				return false;
-		} else if (!whiteOut.equals(other.whiteOut))
+		} else if (!getWhiteOut().equals(other.getWhiteOut()))
 			return false;
 		if (whitePieces == null) {
 			if (other.whitePieces != null)
@@ -264,6 +264,54 @@ public class Board {
 		} else if (!whitePieces.equals(other.whitePieces))
 			return false;
 		return true;
+	}
+
+	public List<Slot> getPlaySlots() {
+		return playSlots;
+	}
+
+	public void setPlaySlots(List<Slot> playSlots) {
+		this.playSlots = playSlots;
+	}
+
+	public Pit getLeftPit() {
+		return leftPit;
+	}
+
+	public void setLeftPit(Pit leftPit) {
+		this.leftPit = leftPit;
+	}
+
+	public Pit getRightPit() {
+		return rightPit;
+	}
+
+	public void setRightPit(Pit rightPit) {
+		this.rightPit = rightPit;
+	}
+
+	public Dugout getWhiteOut() {
+		return whiteOut;
+	}
+
+	public void setWhiteOut(Dugout whiteOut) {
+		this.whiteOut = whiteOut;
+	}
+
+	public Bar getBar() {
+		return bar;
+	}
+
+	public void setBar(Bar bar) {
+		this.bar = bar;
+	}
+
+	public Dugout getBlackOut() {
+		return blackOut;
+	}
+
+	public void setBlackOut(Dugout blackOut) {
+		this.blackOut = blackOut;
 	}
 	
 	

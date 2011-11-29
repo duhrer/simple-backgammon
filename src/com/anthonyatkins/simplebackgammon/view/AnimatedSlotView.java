@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 import com.anthonyatkins.simplebackgammon.model.Slot;
 
 public class AnimatedSlotView extends ViewGroup {
-	public Slot slot;
+	private Slot slot;
 	private SimpleSlotView slotView;
 	private PointerView pointerView;
 	private Palette theme;

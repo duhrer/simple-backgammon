@@ -1,21 +1,105 @@
 package com.anthonyatkins.simplebackgammon.model;
 
+import java.util.Date;
+import java.util.List;
+
 import com.anthonyatkins.simplebackgammon.Constants;
-import com.anthonyatkins.simplebackgammon.activity.SimpleBackgammon;
 
 
 public class Turn {
-	public Moves moves = new Moves();
-	public Player player;
-	public GameDice dice;
-	public Turn(Player player, GameDice dice) {
+	// Database setup information
+	public static final String _ID            = "_id";
+	public static final String GAME 		  = "game";
+	public static final String PLAYER 		  = "player";
+	public static final String COLOR		  = "color";
+	public static final String DIE_ONE	      = "d1";
+	public static final String DIE_TWO	      = "d2";
+	public static final String CREATED        = "created";
+	
+	public static final String TABLE_NAME = "match";
+	public static final String TABLE_CREATE = 
+		"CREATE TABLE " +
+		TABLE_NAME + " (" +
+		_ID + " integer primary key, " +
+		GAME + " integer, " +
+		PLAYER + " integer, " +
+		COLOR + " integer, " +
+		DIE_ONE + " integer, " +
+		DIE_TWO + " integer, " +
+		CREATED + " datetime " +
+		");";
+	
+	public static final String[] COLUMNS = {
+			_ID,
+			GAME,
+			PLAYER,
+			COLOR,
+			DIE_ONE,
+			DIE_TWO,
+			CREATED
+	};
+	
+	private int id;
+	private Moves moves = new Moves();
+	private Player player;
+	private SimpleDice dice;
+	private int color;
+	private Date created = new Date();
+
+	public Moves getMoves() {
+		return moves;
+	}
+
+	public void setMoves(Moves moves) {
+		this.moves = moves;
+	}
+
+	public Player getPlayer() {
+		return player;
+	}
+
+	public void setPlayer(Player player) {
 		this.player = player;
-		this.dice = new GameDice(dice);
+	}
+
+	public SimpleDice getDice() {
+		return dice;
+	}
+
+	public void setDice(SimpleDice dice) {
+		this.dice = dice;
+	}
+
+	public int getColor() {
+		return color;
+	}
+
+	public void setColor(int color) {
+		this.color = color;
+	}
+
+	public Date getCreated() {
+		return created;
+	}
+
+	public void setCreated(Date created) {
+		this.created = created;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public Turn(Player player, SimpleDice dice2) {
+		this.player = player;
+		this.color = player.getColor();
+		this.dice = new SimpleDice(dice2);
 	}
 	
 	public Turn(Turn existingTurn) {
 		this.player = existingTurn.player;
-		this.dice = new GameDice(existingTurn.dice);
+		this.color = player.getColor();
+		this.dice = new SimpleDice(existingTurn.dice);
 		for (Move move: existingTurn.moves) {
 			moves.add(new Move(move));
 		}
@@ -24,7 +108,7 @@ public class Turn {
 	public Turn(Turn existingTurn, Game game) {
 		if (existingTurn != null) {
 			if (existingTurn.player != null) {
-				if (existingTurn.player.color == Constants.BLACK) {
+				if (existingTurn.player.getColor() == Constants.BLACK) {
 					this.player = game.getBlackPlayer();
 				}
 				else {
@@ -32,11 +116,13 @@ public class Turn {
 				}
 			}
 			if (existingTurn.dice != null) {
-				this.dice = new GameDice(existingTurn.dice);
+				this.dice = new SimpleDice(existingTurn.dice);
 				for (Move move: existingTurn.moves) {
 					moves.add(new Move(move));
 				}
 			}
+
+			this.color = player.getColor();
 		}
 	}
 
@@ -77,6 +163,12 @@ public class Turn {
 			return false;
 		return true;
 	}
-	
-	
+
+	public int getId() {
+		return this.id;
+	}
+
+	public void addMoves(List<Move> moves2) {
+		for (Move move: moves2) moves.add(move);
+	}
 }

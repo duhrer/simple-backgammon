@@ -3,16 +3,52 @@ package com.anthonyatkins.simplebackgammon.model;
 import com.anthonyatkins.simplebackgammon.Constants;
 
 public class Game {
-	public Board board;
+	// Database setup information
+	public static final String _ID             = "_id";
+	public static final String MATCH           = "match";
+	public static final String BLACK_PLAYER	   = "black_player";
+	public static final String WHITE_PLAYER	   = "white_player";
+	public static final String POINTS        = "points";
+	public static final String FINISHED        = "finished";
+	public static final String DATE            = "date";
+	
+	public static final String TABLE_NAME = "game";
+	public static final String TABLE_CREATE = 
+		"CREATE TABLE " +
+		TABLE_NAME + " (" +
+		_ID + " integer primary key, " +
+		MATCH + " integer " +
+		BLACK_PLAYER + " integer " +
+		WHITE_PLAYER + " integer " +
+		POINTS + " integer " +
+		FINISHED + " boolean " +
+		DATE + " datetime " +
+		");";
+	
+	public static final String[] COLUMNS = {
+			_ID,
+			MATCH,
+			BLACK_PLAYER,
+			WHITE_PLAYER,
+			POINTS,
+			FINISHED,
+			DATE
+	};
+
+	
+	// FIXME: We need to uniquely generate this on game creation based on the database.
+	private long id = -1;
+	private Board board;
 	private Player blackPlayer;
 	private Player whitePlayer;
 //	public Dialog dialog;
-	public GameLog gameLog = new GameLog();
-	public Turn currentTurn;
+	private GameLog gameLog = new GameLog();
+	private Turn currentTurn;
+	// The current value of the doubling cube
+	private int points = 1;
 
 	// "states" the game can be in
 	public static final int UNINITIALIZED    = -99;
-	public static final int LOAD_SAVE 		 = -1;
 	public static final int STARTUP          = 0;
 	public static final int PICK_FIRST       = 1;
 	public static final int ROLL             = 2;
@@ -25,7 +61,10 @@ public class Game {
 	private int state = UNINITIALIZED;
 	private Slot sourceSlot = null;
 	private Slot destSlot = null;
-	private SavedGame savedGame;
+
+	// FIXME:  We have no code to manage matches yet
+	private Match match;
+	private boolean isFinished = false;
 
 	public Game() {
 		initialize();
@@ -33,21 +72,25 @@ public class Game {
 
 	/* Create a new game based on an existing game.   Used primarily for unit tests. */
 	public Game(Game baselineGame) {
+		clone(baselineGame);
+	}
+
+	public void clone(Game baselineGame) {
 		this.setBlackPlayer(new Player(baselineGame.getBlackPlayer(), this));
 		this.setWhitePlayer(new Player(baselineGame.getWhitePlayer(), this));
-		this.board = new Board(baselineGame.board, this);
+		this.setBoard(new Board(baselineGame.getBoard(), this));
 		
 		if (baselineGame.getActivePlayer() == null ) {
 			// do nothing
 		}
-		else if (baselineGame.getActivePlayer().color == Constants.BLACK) {
+		else if (baselineGame.getActivePlayer().getColor() == Constants.BLACK) {
 			setActivePlayer(getBlackPlayer());
 		}
 		else {
 			setActivePlayer(getWhitePlayer());
 		}
 		
-		this.gameLog = new GameLog(baselineGame.gameLog);
+		this.setGameLog(new GameLog(baselineGame.getGameLog()));
 		
 		if (baselineGame.currentTurn != null) {
 			this.currentTurn = new Turn(baselineGame.currentTurn, this);
@@ -61,16 +104,16 @@ public class Game {
 		/* If we're starting a new game in the same session, we need to clear out the existing data.
 		 * Among other things, this should fix the display of the last winning move on the GAME_START screen. */
 		currentTurn = null;
-		gameLog.clear();
+		getGameLog().clear();
 		
 		if (getWhitePlayer() == null) { setWhitePlayer(new Player(Constants.WHITE, this)); }
 		if (getBlackPlayer() == null) { setBlackPlayer(new Player(Constants.BLACK, this)); }
 
 		// If the board already exists we are reinitializing it.  That method will clear out the player pieces.
-		if (board == null) { board = new Board(this); }
+		if (getBoard() == null) { setBoard(new Board(this)); }
 		else { 
 			try {
-				board.initializeSlots();
+				getBoard().initializeSlots();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -125,24 +168,16 @@ public class Game {
 		this.destSlot = destSlot;
 	}
 
-	public SavedGame getSavedGame() {
-		return this.savedGame;
-	}
-	
-	public void setSavedGame(SavedGame savedGame) {
-		this.savedGame = savedGame;
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((gameLog == null) ? 0 : gameLog.hashCode());
+		result = prime * result + ((getGameLog() == null) ? 0 : getGameLog().hashCode());
 		result = prime * result
 				+ ((getActivePlayer() == null) ? 0 : getActivePlayer().hashCode());
 		result = prime * result
 				+ ((getBlackPlayer() == null) ? 0 : getBlackPlayer().hashCode());
-		result = prime * result + ((board == null) ? 0 : board.hashCode());
+		result = prime * result + ((getBoard() == null) ? 0 : getBoard().hashCode());
 		result = prime * result
 				+ ((currentTurn == null) ? 0 : currentTurn.hashCode());
 		result = prime * result
@@ -167,10 +202,10 @@ public class Game {
 		if (!(obj instanceof Game))
 			return false;
 		Game other = (Game) obj;
-		if (gameLog == null) {
-			if (other.gameLog != null)
+		if (getGameLog() == null) {
+			if (other.getGameLog() != null)
 				return false;
-		} else if (!gameLog.equals(other.gameLog))
+		} else if (!getGameLog().equals(other.getGameLog()))
 			return false;
 		if (getActivePlayer() == null) {
 			if (other.getActivePlayer() != null)
@@ -182,10 +217,10 @@ public class Game {
 				return false;
 		} else if (!getBlackPlayer().equals(other.getBlackPlayer()))
 			return false;
-		if (board == null) {
-			if (other.board != null)
+		if (getBoard() == null) {
+			if (other.getBoard() != null)
 				return false;
-		} else if (!board.equals(other.board))
+		} else if (!getBoard().equals(other.getBoard()))
 			return false;
 		if (currentTurn == null) {
 			if (other.currentTurn != null)
@@ -241,5 +276,69 @@ public class Game {
 
 	public Player getWhitePlayer() {
 		return whitePlayer;
+	}
+	
+	public Turn getCurrentTurn() {
+		return currentTurn;
+	}
+
+	public void setCurrentTurn(Turn currentTurn) {
+		this.currentTurn = currentTurn;
+	}
+
+	public int getPoints() {
+		return points;
+	}
+
+	public void setPoints(int points) {
+		this.points = points;
+	}
+
+	public void setFinished(boolean isFinished) {
+		this.isFinished  = isFinished;
+	}
+
+	public void setMatch(Match match) {
+		this.match = match;
+	}
+
+	public void makeMove(Move move) {
+		Slot startSlot = getBoard().getPlaySlots().get(move.getStartSlot().position);
+		Piece piece = startSlot.removePiece();
+		
+		Slot endSlot = getBoard().getPlaySlots().get(move.getStartSlot().position);
+		endSlot.addPiece(piece);
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public long getId() {
+		return this.id;
+	}
+
+	public Match getMatch() {
+		return this.match;
+	}
+
+	public boolean isFinished() {
+		return this.isFinished;
+	}
+
+	public GameLog getGameLog() {
+		return gameLog;
+	}
+
+	public void setGameLog(GameLog gameLog) {
+		this.gameLog = gameLog;
+	}
+
+	public Board getBoard() {
+		return board;
+	}
+
+	public void setBoard(Board board) {
+		this.board = board;
 	}
 }

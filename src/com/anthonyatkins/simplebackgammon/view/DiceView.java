@@ -11,8 +11,8 @@ import com.anthonyatkins.simplebackgammon.model.SimpleDice;
 import com.anthonyatkins.simplebackgammon.model.SimpleDie;
 
 public class DiceView extends ViewGroup{
-	SimpleDice dice;
-	Context context; 
+	private SimpleDice dice;
+	private Context context; 
 	private Palette theme;
 	
 	public DiceView(Context context, AttributeSet attrs) {

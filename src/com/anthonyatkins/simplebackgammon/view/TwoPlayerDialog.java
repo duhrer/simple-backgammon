@@ -27,7 +27,7 @@ public class TwoPlayerDialog extends Dialog {
 	}
 	
 	public void setMessage(String text) {
-		dialogView.dialog.setMessage(text);
+		dialogView.getDialog().setMessage(text);
 		dialogView.invalidate();
 	}
 	
