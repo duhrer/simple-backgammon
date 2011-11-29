@@ -28,8 +28,8 @@ public class GameDie extends SimpleDie {
 	}
 
 	public boolean hasMoves() {
-		for (Move move: player.moves) {
-			if (move.die.equals(this)) return true;
+		for (Move move: player.getMoves()) {
+			if (move.getDie().equals(this)) return true;
 		}
 		return false;
 	}

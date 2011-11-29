@@ -90,7 +90,7 @@ public class DieView extends View {
 		if (die instanceof GameDie) {
 			if (((GameDie) die).getGame() != null) {
 				if (((GameDie) die).getGame().getActivePlayer() != null) {
-					activePlayerColor = ((GameDie) die).getGame().getActivePlayer().color;
+					activePlayerColor = ((GameDie) die).getGame().getActivePlayer().getColor();
 				}
 				gameState = ((GameDie) die).getGame().getState();
 			}

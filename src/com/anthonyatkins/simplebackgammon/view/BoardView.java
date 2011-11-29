@@ -16,10 +16,10 @@ public class BoardView extends ViewGroup{
 	private PitView leftPitView;
 	private PitView rightPitView;
 	private Palette theme;
-	public CombinedBarView combinedBarView;
-	public DiceView blackDiceView;
-	public DiceView whiteDiceView;
-	public List<AnimatedSlotView> playSlotViews = new ArrayList<AnimatedSlotView>();
+	private CombinedBarView combinedBarView;
+	private DiceView blackDiceView;
+	private DiceView whiteDiceView;
+	private List<AnimatedSlotView> playSlotViews = new ArrayList<AnimatedSlotView>();
 		
 	public BoardView(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -32,42 +32,42 @@ public class BoardView extends ViewGroup{
 		this.board = board;
 		this.theme = theme;
 		
-		leftPitView = new PitView(context, board.leftPit, theme);
+		leftPitView = new PitView(context, board.getLeftPit(), theme);
 		addView(leftPitView);
-		this.whiteDiceView = leftPitView.diceView;
+		this.setWhiteDiceView(leftPitView.getDiceView());
 		
-		rightPitView = new PitView(context, board.rightPit, theme);
+		rightPitView = new PitView(context, board.getRightPit(), theme);
 		addView(rightPitView);
-		this.blackDiceView = rightPitView.diceView;
+		this.setBlackDiceView(rightPitView.getDiceView());
 
-		this.combinedBarView = new CombinedBarView(context, new DugoutView(context,board.whiteOut, theme), new BarView(context,board.bar,theme), new DugoutView(context,board.blackOut,theme), theme);
-		addView(combinedBarView);
+		this.setCombinedBarView(new CombinedBarView(context, new DugoutView(context,board.getWhiteOut(), theme), new BarView(context,board.getBar(),theme), new DugoutView(context,board.getBlackOut(),theme), theme));
+		addView(getCombinedBarView());
 		
 	
 		// Knit together the slots and their views and put the slots in the right pit
 		for (int a=0; a<6; a++) {
-			Slot slot = board.playSlots.get(a);
+			Slot slot = board.getPlaySlots().get(a);
 			AnimatedSlotView slotView = new AnimatedSlotView(context,slot,theme);
-			playSlotViews.add(slotView);
-			rightPitView.bottomSlotBankView.addView(slotView);
+			getPlaySlotViews().add(slotView);
+			rightPitView.getBottomSlotBankView().addView(slotView);
 		}
 		for (int a=6; a<12; a++) {
-			Slot slot = board.playSlots.get(a);
+			Slot slot = board.getPlaySlots().get(a);
 			AnimatedSlotView slotView = new AnimatedSlotView(context,slot,theme);
-			playSlotViews.add(slotView);
-			leftPitView.bottomSlotBankView.addView(slotView);
+			getPlaySlotViews().add(slotView);
+			leftPitView.getBottomSlotBankView().addView(slotView);
 		}
 		for (int a=12; a<18; a++) {
-			Slot slot = board.playSlots.get(a);
+			Slot slot = board.getPlaySlots().get(a);
 			AnimatedSlotView slotView = new AnimatedSlotView(context,slot,theme);
-			playSlotViews.add(slotView);
-			leftPitView.topSlotBankView.addView(slotView);
+			getPlaySlotViews().add(slotView);
+			leftPitView.getTopSlotBankView().addView(slotView);
 		}
 		for (int a=18; a<24; a++) {
-			Slot slot = board.playSlots.get(a);
+			Slot slot = board.getPlaySlots().get(a);
 			AnimatedSlotView slotView = new AnimatedSlotView(context,slot,theme);
-			playSlotViews.add(slotView);
-			rightPitView.topSlotBankView.addView(slotView);
+			getPlaySlotViews().add(slotView);
+			rightPitView.getTopSlotBankView().addView(slotView);
 		}
 
 	}
@@ -84,9 +84,9 @@ public class BoardView extends ViewGroup{
 		rightPitView.setMinimumWidth(pitWidth);
 		rightPitView.setMinimumHeight(heightMeasureSpec);
 		rightPitView.measure(pitWidth, heightMeasureSpec);
-		combinedBarView.setMinimumWidth(combinedBarWidth);
-		combinedBarView.setMinimumHeight(heightMeasureSpec);
-		combinedBarView.measure(combinedBarWidth, heightMeasureSpec);
+		getCombinedBarView().setMinimumWidth(combinedBarWidth);
+		getCombinedBarView().setMinimumHeight(heightMeasureSpec);
+		getCombinedBarView().measure(combinedBarWidth, heightMeasureSpec);
 	}
 	
 	@Override
@@ -98,6 +98,38 @@ public class BoardView extends ViewGroup{
 		x+=leftPitView.getMeasuredWidth() + marginWidth;
 		rightPitView.layout(x, y, x + rightPitView.getMeasuredWidth(), rightPitView.getMeasuredHeight());
 		x+=rightPitView.getMeasuredWidth() + marginWidth;
-		combinedBarView.layout(x,y, x+combinedBarView.getMeasuredWidth(), y+combinedBarView.getMeasuredHeight());
+		getCombinedBarView().layout(x,y, x+getCombinedBarView().getMeasuredWidth(), y+getCombinedBarView().getMeasuredHeight());
+	}
+
+	public CombinedBarView getCombinedBarView() {
+		return combinedBarView;
+	}
+
+	public void setCombinedBarView(CombinedBarView combinedBarView) {
+		this.combinedBarView = combinedBarView;
+	}
+
+	public DiceView getWhiteDiceView() {
+		return whiteDiceView;
+	}
+
+	public void setWhiteDiceView(DiceView whiteDiceView) {
+		this.whiteDiceView = whiteDiceView;
+	}
+
+	public DiceView getBlackDiceView() {
+		return blackDiceView;
+	}
+
+	public void setBlackDiceView(DiceView blackDiceView) {
+		this.blackDiceView = blackDiceView;
+	}
+
+	public List<AnimatedSlotView> getPlaySlotViews() {
+		return playSlotViews;
+	}
+
+	public void setPlaySlotViews(List<AnimatedSlotView> playSlotViews) {
+		this.playSlotViews = playSlotViews;
 	}	
 }

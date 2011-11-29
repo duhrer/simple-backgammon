@@ -1,11 +1,10 @@
 package com.anthonyatkins.simplebackgammon.view;
 
-import com.anthonyatkins.simplebackgammon.Constants;
-import com.anthonyatkins.simplebackgammon.activity.SimpleBackgammon;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.widget.Button;
+
+import com.anthonyatkins.simplebackgammon.Constants;
 
 public class RotateableButton extends Button {
 	private GameView gameView;
@@ -18,7 +17,7 @@ public class RotateableButton extends Button {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		canvas.save();
-		if (gameView.game.getActivePlayer().color == Constants.BLACK) {
+		if (gameView.getGame().getActivePlayer().getColor() == Constants.BLACK) {
 			canvas.rotate(180, getMeasuredWidth()/2, getMeasuredHeight()/2);
 		}
 		super.onDraw(canvas);

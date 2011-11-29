@@ -25,7 +25,7 @@ public class SinglePlayerDialogView extends View{
 
 	@Override
 	protected void onDraw(Canvas canvas) {
-		if (gameView.game.getActivePlayer().color == Constants.BLACK) {
+		if (gameView.getGame().getActivePlayer().getColor() == Constants.BLACK) {
 			canvas.rotate(180, getMeasuredWidth()/2, getMeasuredHeight()/2);
 		}
 

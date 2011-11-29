@@ -44,6 +44,11 @@ public class Slot implements Comparable<Slot>{
 		return piece;
 	}
 	
+	public Piece removePiece() {
+		return pieces.get(0);
+	}
+
+	
 	public int getDirection() {
 		return this.direction;
 	}
@@ -132,6 +137,4 @@ public class Slot implements Comparable<Slot>{
 			return false;
 		return true;
 	}
-	
-	
 }

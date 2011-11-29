@@ -7,9 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class CombinedBarView extends ViewGroup {
-	public DugoutView whiteOutView;
-	public BarView barView;
-	public DugoutView blackOutView;
+	private DugoutView whiteOutView;
+	private BarView barView;
+	private DugoutView blackOutView;
 	private Palette theme;
 	
 	public CombinedBarView(Context context, AttributeSet attrs) {
@@ -19,12 +19,12 @@ public class CombinedBarView extends ViewGroup {
 	public CombinedBarView(Context context, DugoutView whiteOutView, BarView barView, DugoutView blackOutView, Palette theme) {
 		super(context);
 
-		this.blackOutView=blackOutView;
-		addView(this.blackOutView);
-		this.barView=barView;
-		addView(this.barView);
-		this.whiteOutView=whiteOutView;
-		addView(this.whiteOutView);		
+		this.setBlackOutView(blackOutView);
+		addView(this.getBlackOutView());
+		this.setBarView(barView);
+		addView(this.getBarView());
+		this.setWhiteOutView(whiteOutView);
+		addView(this.getWhiteOutView());		
 		
 		this.theme = theme;
 
@@ -48,12 +48,36 @@ public class CombinedBarView extends ViewGroup {
 
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		int y = 0;
-		blackOutView.layout(0, y, blackOutView.getMeasuredWidth(), y+blackOutView.getMeasuredHeight());
-		y += blackOutView.getMeasuredHeight();
-		barView.layout(0, y, barView.getMeasuredWidth(), y+barView.getMeasuredHeight());
-		y += barView.getMeasuredHeight();
-		whiteOutView.layout(0, y, whiteOutView.getMeasuredWidth(), y+whiteOutView.getMeasuredHeight());
-		y += whiteOutView.getMeasuredHeight();
+		getBlackOutView().layout(0, y, getBlackOutView().getMeasuredWidth(), y+getBlackOutView().getMeasuredHeight());
+		y += getBlackOutView().getMeasuredHeight();
+		getBarView().layout(0, y, getBarView().getMeasuredWidth(), y+getBarView().getMeasuredHeight());
+		y += getBarView().getMeasuredHeight();
+		getWhiteOutView().layout(0, y, getWhiteOutView().getMeasuredWidth(), y+getWhiteOutView().getMeasuredHeight());
+		y += getWhiteOutView().getMeasuredHeight();
+	}
+
+	public BarView getBarView() {
+		return barView;
+	}
+
+	public void setBarView(BarView barView) {
+		this.barView = barView;
+	}
+
+	public DugoutView getBlackOutView() {
+		return blackOutView;
+	}
+
+	public void setBlackOutView(DugoutView blackOutView) {
+		this.blackOutView = blackOutView;
+	}
+
+	public DugoutView getWhiteOutView() {
+		return whiteOutView;
+	}
+
+	public void setWhiteOutView(DugoutView whiteOutView) {
+		this.whiteOutView = whiteOutView;
 	}
 
 }

@@ -79,7 +79,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 						if (slot.moves != null && slot.moves.size() > 0) {
 							Move incomingMove = null;
 							for (Move move: slot.moves) {
-								if (move.startSlot.equals(slot.getGame().getSourceSlot())) {
+								if (move.getStartSlot().equals(slot.getGame().getSourceSlot())) {
 									incomingMove = move;
 									break;
 								}
@@ -90,7 +90,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 //								c.drawCircle(centerX, centerY, pieceRadius, pieceMultiplierPaint);
 //								c.drawText(String.valueOf(incomingMove.die.getValue()), centerX, centerY + textHeight/4, pieceMultiplierPaint);
 								
-								updateImage(incomingMove.die);
+								updateImage(incomingMove.getDie());
 								if (imageResource != 0) {
 									c.drawBitmap(BitmapFactory.decodeResource(getResources(),imageResource), null, new Rect(centerX-pieceRadius,centerY-pieceRadius,centerX+pieceRadius,centerY+pieceRadius), theme.potentialMovePaint);
 								}
@@ -147,7 +147,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 	}
 	
 	private void updateImage(SimpleDie die) {
-		if (this.slot.getGame().getActivePlayer().color == Constants.BLACK) {
+		if (this.slot.getGame().getActivePlayer().getColor() == Constants.BLACK) {
 			switch (die.getValue()) {
 				case 1:
 					setImageResource(com.anthonyatkins.simplebackgammon.R.drawable.bc1);
