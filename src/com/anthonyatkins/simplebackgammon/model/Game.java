@@ -1,5 +1,7 @@
 package com.anthonyatkins.simplebackgammon.model;
 
+import android.util.Log;
+
 import com.anthonyatkins.simplebackgammon.Constants;
 
 public class Game {
@@ -115,8 +117,7 @@ public class Game {
 			try {
 				getBoard().initializeSlots();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.e(getClass().getName(), "Error initializing slots on board", e);
 			}
 		}
 	}
