@@ -161,7 +161,21 @@ public class DbUtils {
 	}
 	
 	private int deleteMatch(Match match, SQLiteDatabase db) {
+		// Delete all games in this match
+		for (Game game : match.getGames()) {
+			deleteGame(game.getId(),db);
+		}
+		
 		return db.delete(Match.TABLE_NAME, Match._ID + "=" + match.getId(), null);
+	}
+	
+	private int deleteMatch(long matchId, SQLiteDatabase db) {
+		// Delete all games in this match
+		for (Game game : getGamesByMatch(matchId,db)) {
+			deleteGame(game.getId(),db);
+		}
+		
+		return db.delete(Match.TABLE_NAME, Match._ID + "=" + matchId, null);
 	}
 	
 	private long saveTurn(Turn turn, SQLiteDatabase db) {
@@ -187,7 +201,13 @@ public class DbUtils {
 	}
 	
 	private int deleteTurn(Turn turn, SQLiteDatabase db) {
-		return db.delete(Turn.TABLE_NAME, Turn._ID + "=" + turn.getId(), null);
+		return deleteTurn(turn.getId(),db);
+	}
+	
+	private int deleteTurn(long turnId, SQLiteDatabase db) {
+		// FIXME:  Delete all moves in this turn
+		
+		return db.delete(Turn.TABLE_NAME, Turn._ID + "=" + turnId, null);
 	}
 	
 	private long saveMove(Move move, SQLiteDatabase db) {
@@ -216,7 +236,11 @@ public class DbUtils {
 	}
 	
 	private int deleteMove(Move move, SQLiteDatabase db) {
-		return db.delete(Move.TABLE_NAME, Move._ID + "=" + move.getId(), null);
+		return deleteMove(move.getId(),db);
+	}
+	
+	private int deleteMove(long moveId, SQLiteDatabase db) {
+		return db.delete(Move.TABLE_NAME, Move._ID + "=" + moveId, null);
 	}
 	
 	private long savePlayer(Player player, SQLiteDatabase db) {
@@ -235,7 +259,11 @@ public class DbUtils {
 	}
 	
 	private int deletePlayer(Player player, SQLiteDatabase db) {
-		return db.delete(Player.TABLE_NAME, Player._ID + "=" + player.getId(), null);
+		return deletePlayer(player.getId(), db);
+	}
+	
+	private int deletePlayer(long playerId, SQLiteDatabase db) {
+		return db.delete(Player.TABLE_NAME, Player._ID + "=" + playerId, null);
 	}
 	
 	
@@ -262,9 +290,22 @@ public class DbUtils {
 	}
 
 	private int deleteGame(Game game, SQLiteDatabase db) {
-		return db.delete(Game.TABLE_NAME, Game._ID + "=" + game.getId(),null);
+		return deleteGame(game.getId(), db);
 	}
 	
+	private int deleteGame(long gameId, SQLiteDatabase db) {
+		// FIXME:  Delete all turns in this game
+		
+		return db.delete(Game.TABLE_NAME, Game._ID + "=" + gameId,null);
+	}
+	
+	private static List<Game> getGamesByMatch(long matchId, SQLiteDatabase db) {
+		List<Game> games = new ArrayList<Game>();
+		
+		// FIXME: Map the relationship of games to matches sensibly and retrieve the games here.
+		
+		return games;
+	}
 	
 	private static List<Turn> getTurnsByGame(long gameId, Game game, SQLiteDatabase db) {
 		List<Turn> turns = new ArrayList<Turn>();
