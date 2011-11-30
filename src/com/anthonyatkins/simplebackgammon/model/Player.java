@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class Player {
-	private long id;
+	private long id = -1;
 	private final int color;
 	private GameDice dice;
 	private Pieces pieces = new Pieces();
@@ -15,7 +15,7 @@ public class Player {
 	private Move selectedMove = null;
 	private Game game;
 	private boolean active = false;
-	private String name = null;
+	private String name = "Unknown Player";
 	
 	// Database setup information
 	public static final String _ID            = "_id";
@@ -29,6 +29,10 @@ public class Player {
 		NAME + " varchar(20) " +
 		");";
 	
+	public String getName() {
+		return name;
+	}
+
 	public static final String[] COLUMNS = {
 			_ID,
 			NAME
@@ -41,6 +45,8 @@ public class Player {
 	}
 
 	public Player(Player existingPlayer, Game game) {
+		this.id = existingPlayer.getId();
+		this.name = existingPlayer.getName();
 		this.color = existingPlayer.getColor();
 		this.setDice(new GameDice(existingPlayer.getDice()));
 		
@@ -191,5 +197,9 @@ public class Player {
 
 	public void setDice(GameDice dice) {
 		this.dice = dice;
+	}
+
+	public void setId(long playerId) {
+		this.id = playerId;		
 	}
 }

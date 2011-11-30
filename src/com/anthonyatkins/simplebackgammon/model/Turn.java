@@ -39,12 +39,12 @@ public class Turn {
 			CREATED
 	};
 	
-	private int id;
+	private long id = -1;
 	private Moves moves = new Moves();
 	private Player player;
 	private SimpleDice dice;
 	private int color;
-	private Date created = new Date();
+	private final Date created = new Date();
 
 	public Moves getMoves() {
 		return moves;
@@ -76,18 +76,6 @@ public class Turn {
 
 	public void setColor(int color) {
 		this.color = color;
-	}
-
-	public Date getCreated() {
-		return created;
-	}
-
-	public void setCreated(Date created) {
-		this.created = created;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 	public Turn(Player player, SimpleDice dice2) {
@@ -164,11 +152,19 @@ public class Turn {
 		return true;
 	}
 
-	public int getId() {
+	public long getId() {
 		return this.id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
 	}
 
 	public void addMoves(List<Move> moves2) {
 		for (Move move: moves2) moves.add(move);
+	}
+	
+	public Date getCreated() {
+		return created;
 	}
 }

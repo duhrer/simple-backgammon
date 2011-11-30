@@ -1,5 +1,7 @@
 package com.anthonyatkins.simplebackgammon.model;
 
+import java.util.Date;
+
 import android.util.Log;
 
 import com.anthonyatkins.simplebackgammon.Constants;
@@ -10,9 +12,9 @@ public class Game {
 	public static final String MATCH           = "match";
 	public static final String BLACK_PLAYER	   = "black_player";
 	public static final String WHITE_PLAYER	   = "white_player";
-	public static final String POINTS        = "points";
+	public static final String POINTS          = "points";
 	public static final String FINISHED        = "finished";
-	public static final String DATE            = "date";
+	public static final String CREATED         = "created";
 	
 	public static final String TABLE_NAME = "game";
 	public static final String TABLE_CREATE = 
@@ -24,7 +26,7 @@ public class Game {
 		WHITE_PLAYER + " integer " +
 		POINTS + " integer " +
 		FINISHED + " boolean " +
-		DATE + " datetime " +
+		CREATED + " datetime " +
 		");";
 	
 	public static final String[] COLUMNS = {
@@ -34,7 +36,7 @@ public class Game {
 			WHITE_PLAYER,
 			POINTS,
 			FINISHED,
-			DATE
+			CREATED
 	};
 
 	
@@ -49,6 +51,8 @@ public class Game {
 	// The current value of the doubling cube
 	private int points = 1;
 
+	private final Date created = new Date();
+	
 	// "states" the game can be in
 	public static final int UNINITIALIZED    = -99;
 	public static final int STARTUP          = 0;
@@ -311,7 +315,7 @@ public class Game {
 		endSlot.addPiece(piece);
 	}
 
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 
@@ -341,5 +345,9 @@ public class Game {
 
 	public void setBoard(Board board) {
 		this.board = board;
+	}
+
+	public Date getCreated() {
+		return created;
 	}
 }
