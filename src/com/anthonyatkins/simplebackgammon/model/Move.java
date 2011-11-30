@@ -39,6 +39,7 @@ public class Move implements Comparable {
 			CREATED
 	};
 	
+	private long id = -1;
 	private final Slot startSlot;
 	private final Slot endSlot;
 	// FIXME:  Find some way of handling moves that involve more than one die, not necessarily in the move object, but somewhere
@@ -120,5 +121,13 @@ public class Move implements Comparable {
 
 	public SimpleDie getDie() {
 		return die;
+	}
+	
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
 	}
 }

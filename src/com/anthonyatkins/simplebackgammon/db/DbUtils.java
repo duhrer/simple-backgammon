@@ -22,7 +22,7 @@ public class DbUtils {
 
 	public static int getLastUnfinishedGame(SQLiteDatabase db) {
 		if (db.isOpen()) {
-			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.FINISHED + "=false",null,null,null,Game.DATE + " desc","limit 1");
+			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.FINISHED + "=false",null,null,null,Game.CREATED + " desc","limit 1");
 			if (cursor.getCount() > 0) {
 				cursor.moveToFirst();
 				int id = cursor.getInt(cursor.getColumnIndex(Game._ID));
@@ -33,7 +33,7 @@ public class DbUtils {
 		return -1;
 	}
 	
-	public static Game getGameById(int gameId, SQLiteDatabase db) {
+	public static Game getGameById(long gameId, SQLiteDatabase db) {
 		Game game = new Game();
 
 		if (db.isOpen()) {
@@ -89,7 +89,7 @@ public class DbUtils {
 		return game;
 	}
 	
-	private static Match getMatchById(int matchId, Game game, SQLiteDatabase db) {
+	private static Match getMatchById(long matchId, Game game, SQLiteDatabase db) {
 		Match match = new Match();
 		
 		match.setBlackPlayer(game.getBlackPlayer());
@@ -112,7 +112,7 @@ public class DbUtils {
 		return match;
 	}
 
-	private static List<Move> getMovesByTurn(int turnId, Game game, SQLiteDatabase db) {
+	private static List<Move> getMovesByTurn(long turnId, Game game, SQLiteDatabase db) {
 		List<Move> moves = new ArrayList<Move>();
 
 		if (db.isOpen()) {
@@ -141,20 +141,118 @@ public class DbUtils {
 		return moves;
 	}
 	
-	private long saveGame(Game game, SQLiteDatabase db) {
+	private long saveMatch(Match match, SQLiteDatabase db) {
+		ContentValues values = new ContentValues();
+		values.put(Match.BLACK_PLAYER, match.getBlackPlayer().getId());
+		values.put(Match.WHITE_PLAYER, match.getWhitePlayer().getId());
+		values.put(Match.NUM_GAMES, match.getNumGames());
+		values.put(Match.FINISHED, match.isFinished());
+		values.put(Match.CREATED, match.getCreated().getTime());
+		
+		if (match.getId() == -1) {
+			long matchId = db.insert(Match.TABLE_NAME, null, values);
+			match.setId(matchId);
+			return matchId;
+		}
+		else {
+			db.update(Match.TABLE_NAME, values, Match._ID + "=" + match.getId(), null);
+			return match.getId();
+		}
+	}
+	
+	private int deleteMatch(Match match, SQLiteDatabase db) {
+		return db.delete(Match.TABLE_NAME, Match._ID + "=" + match.getId(), null);
+	}
+	
+	private long saveTurn(Turn turn, SQLiteDatabase db) {
+		ContentValues values = new ContentValues();
 
+		// FIXME:  Do something about the game relationship (research first)
+		//values.put(Turn.GAME, turn.getGame().getId());
+		values.put(Turn.PLAYER, turn.getPlayer().getId());
+		values.put(Turn.COLOR, turn.getColor());
+		values.put(Turn.DIE_ONE, turn.getDice().get(0).getValue());
+		values.put(Turn.DIE_TWO, turn.getDice().get(1).getValue());
+		values.put(Turn.CREATED, turn.getCreated().getTime());
+		
+		if (turn.getId() == -1) {
+			long turnId = db.insert(Turn.TABLE_NAME, null, values);
+			turn.setId(turnId);
+			return turnId;
+		}
+		else {
+			db.update(Turn.TABLE_NAME, values, Turn._ID + "=" + turn.getId(), null);
+			return turn.getId();
+		}
+	}
+	
+	private int deleteTurn(Turn turn, SQLiteDatabase db) {
+		return db.delete(Turn.TABLE_NAME, Turn._ID + "=" + turn.getId(), null);
+	}
+	
+	private long saveMove(Move move, SQLiteDatabase db) {
+		ContentValues values = new ContentValues();
+
+		// FIXME:  Do something about the TURN relationship (research first)
+		//values.put(Move.TURN, move.getTurn().getId());
+		// FIXME:  Do something about the player relationship (research first)
+		//values.put(Move.PLAYER, move.getPlayer().getId());
+		values.put(Move.DIE, move.getDie().getValue());
+		// FIXME:  Something seems wrong about storing color here
+		//values.put(Move.COLOR, move.getColor().getValue());
+		values.put(Move.START_SLOT, move.getStartSlot().getPosition());
+		values.put(Move.END_SLOT, move.getEndSlot().getPosition());
+		values.put(Move.CREATED, move.getCreated().getTime());
+		
+		if (move.getId() == -1) {
+			long moveId = db.insert(Move.TABLE_NAME, null, values);
+			move.setId(moveId);
+			return moveId;
+		}
+		else {
+			db.update(Move.TABLE_NAME, values, Move._ID + "=" + move.getId(), null);
+			return move.getId();
+		}
+	}
+	
+	private int deleteMove(Move move, SQLiteDatabase db) {
+		return db.delete(Move.TABLE_NAME, Move._ID + "=" + move.getId(), null);
+	}
+	
+	private long savePlayer(Player player, SQLiteDatabase db) {
+		ContentValues values = new ContentValues();
+		values.put(Player.NAME, player.getName());
+		
+		if (player.getId() == -1) {
+			long playerId = db.insert(Player.TABLE_NAME, null, values);
+			player.setId(playerId);
+			return playerId;
+		}
+		else {
+			db.update(Player.TABLE_NAME, values, Player._ID + "=" + player.getId(), null);
+			return player.getId();
+		}
+	}
+	
+	private int deletePlayer(Player player, SQLiteDatabase db) {
+		return db.delete(Player.TABLE_NAME, Player._ID + "=" + player.getId(), null);
+	}
+	
+	
+	private long saveGame(Game game, SQLiteDatabase db) {
 		ContentValues values = new ContentValues();
 		values.put(Game.MATCH, game.getMatch().getId());
 		values.put(Game.BLACK_PLAYER, game.getBlackPlayer().getId());
 		values.put(Game.WHITE_PLAYER, game.getWhitePlayer().getId());
 		values.put(Game.POINTS, game.getPoints());
 		values.put(Game.FINISHED, game.isFinished() ? 1 : 0);
-		
-		// FIXME:  We have to make the sure the date is set automatically based on the current time.
+		values.put(Game.CREATED, game.getCreated().getTime());
 		
 		if (game.getId() == -1) {
 			// This is a new game
-			return db.insert(Game.TABLE_NAME, null, values );
+			long gameId = db.insert(Game.TABLE_NAME, null, values );
+			game.setId(gameId);
+			return gameId;
 		}
 		else {
 			// This is an existing game
@@ -163,7 +261,12 @@ public class DbUtils {
 		}
 	}
 
-	private static List<Turn> getTurnsByGame(int gameId, Game game, SQLiteDatabase db) {
+	private int deleteGame(Game game, SQLiteDatabase db) {
+		return db.delete(Game.TABLE_NAME, Game._ID + "=" + game.getId(),null);
+	}
+	
+	
+	private static List<Turn> getTurnsByGame(long gameId, Game game, SQLiteDatabase db) {
 		List<Turn> turns = new ArrayList<Turn>();
 
 		if (db.isOpen()) {
@@ -177,7 +280,6 @@ public class DbUtils {
 					int d1Value = cursor.getInt(cursor.getColumnIndex(Turn.DIE_ONE));
 					int d2Value = cursor.getInt(cursor.getColumnIndex(Turn.DIE_TWO));
 					int createdTimestamp = cursor.getInt(cursor.getColumnIndex(Turn.CREATED));
-					Date created = new Date((long) createdTimestamp); 
 					Player player = getPlayerById(playerId, color, game, db);
 					
 					SimpleDice dice = new SimpleDice(color);
@@ -186,7 +288,6 @@ public class DbUtils {
 					SimpleDie d2 = new SimpleDie(d2Value,color);
 					dice.add(d2);
 					Turn turn = new Turn(player, dice);
-					turn.setCreated(created);
 					
 					List<Move> moves = getMovesByTurn(turnId, game, db);
 					turn.addMoves(moves);
@@ -198,7 +299,7 @@ public class DbUtils {
 		return turns;
 	}
 
-	public static Player getPlayerById(int playerId, int color, Game game, SQLiteDatabase db) {
+	public static Player getPlayerById(long playerId, int color, Game game, SQLiteDatabase db) {
 		Player player = new Player(color, game);
 
 		if (db.isOpen()) {

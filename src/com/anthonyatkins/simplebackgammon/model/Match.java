@@ -1,5 +1,7 @@
 package com.anthonyatkins.simplebackgammon.model;
 
+import java.util.Date;
+
 public class Match {
 	// Database setup information
 	public static final String _ID            = "_id";
@@ -7,7 +9,7 @@ public class Match {
 	public static final String WHITE_PLAYER	  = "white_player";
 	public static final String NUM_GAMES	  = "num_games";
 	public static final String FINISHED		  = "finished";
-	public static final String DATE			  = "date";
+	public static final String CREATED			  = "created";
 	
 	public static final String TABLE_NAME = "match";
 	public static final String TABLE_CREATE = 
@@ -18,7 +20,7 @@ public class Match {
 		WHITE_PLAYER + " integer, " +
 		NUM_GAMES + " integer, " +
 		FINISHED + " boolean, " +
-		DATE + " datetime " +
+		CREATED + " datetime " +
 		");";
 	
 	public static final String[] COLUMNS = {
@@ -27,15 +29,19 @@ public class Match {
 			WHITE_PLAYER,
 			NUM_GAMES,
 			FINISHED,
-			DATE
+			CREATED
 	};
 
-	private long id;
+	private long id = -1;
 	private Player blackPlayer;
 	private Player whitePlayer;
 	private int numGames;
 	private boolean isFinished;
+	private final Date created = new Date();
 	
+	public Date getCreated() {
+		return created;
+	}
 	public Player getBlackPlayer() {
 		return blackPlayer;
 	}
@@ -62,5 +68,8 @@ public class Match {
 	}
 	public long getId() {
 		return this.id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 }

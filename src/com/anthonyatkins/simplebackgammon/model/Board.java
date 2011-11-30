@@ -46,8 +46,8 @@ public class Board {
 		setBlackOut(new Dugout(24, Constants.BLACK,game)); // ditto for black pieces
 		setLeftPit(new Pit(game.getWhitePlayer().getDice()));
 		setRightPit(new Pit(game.getBlackPlayer().getDice()));
-		whitePieces = game.getWhitePlayer().getPieces();
-		blackPieces = game.getBlackPlayer().getPieces();
+		setWhitePieces(game.getWhitePlayer().getPieces());
+		setBlackPieces(game.getBlackPlayer().getPieces());
 		
 		for (int a=0; a<6; a++) {
 			getPlaySlots().add(new Slot(Slot.UP,a,game));
@@ -162,15 +162,15 @@ public class Board {
 		
 		
 		// Link the newly created pieces to the players who own them
-		whitePieces.clear();
-		blackPieces.clear();
+		getWhitePieces().clear();
+		getBlackPieces().clear();
 		
 		// The dugouts are easy, they can only contain one color
 		Iterator<Piece> blackOutIterator = getBlackOut().pieces.iterator();
-		while (blackOutIterator.hasNext()) { blackPieces.add(blackOutIterator.next()); }
+		while (blackOutIterator.hasNext()) { getBlackPieces().add(blackOutIterator.next()); }
 
 		Iterator<Piece> whiteOutIterator = getWhiteOut().pieces.iterator();
-		while (whiteOutIterator.hasNext()) { whitePieces.add(whiteOutIterator.next()); }
+		while (whiteOutIterator.hasNext()) { getWhitePieces().add(whiteOutIterator.next()); }
 		
 		
 		// The slots can contain either color, so we have to check it
@@ -178,8 +178,8 @@ public class Board {
 			Iterator<Piece> slotIterator = getPlaySlots().get(b).pieces.iterator();
 			while (slotIterator.hasNext()) {
 				Piece tempPiece = slotIterator.next();
-				if (tempPiece.color == Constants.BLACK) { blackPieces.add(tempPiece); }
-				else { whitePieces.add(tempPiece); }
+				if (tempPiece.color == Constants.BLACK) { getBlackPieces().add(tempPiece); }
+				else { getWhitePieces().add(tempPiece); }
 			}
 		}
 		
@@ -187,8 +187,8 @@ public class Board {
 		Iterator<Piece> slotIterator = getBar().pieces.iterator();
 		while (slotIterator.hasNext()) {
 			Piece tempPiece = slotIterator.next();
-			if (tempPiece.color == Constants.BLACK) { blackPieces.add(tempPiece); }
-			else { whitePieces.add(tempPiece); }
+			if (tempPiece.color == Constants.BLACK) { getBlackPieces().add(tempPiece); }
+			else { getWhitePieces().add(tempPiece); }
 		}
 
 	}
@@ -201,7 +201,7 @@ public class Board {
 		result = prime * result
 				+ ((getBlackOut() == null) ? 0 : getBlackOut().hashCode());
 		result = prime * result
-				+ ((blackPieces == null) ? 0 : blackPieces.hashCode());
+				+ ((getBlackPieces() == null) ? 0 : getBlackPieces().hashCode());
 		result = prime * result + ((getLeftPit() == null) ? 0 : getLeftPit().hashCode());
 		result = prime * result
 				+ ((getPlaySlots() == null) ? 0 : getPlaySlots().hashCode());
@@ -210,7 +210,7 @@ public class Board {
 		result = prime * result
 				+ ((getWhiteOut() == null) ? 0 : getWhiteOut().hashCode());
 		result = prime * result
-				+ ((whitePieces == null) ? 0 : whitePieces.hashCode());
+				+ ((getWhitePieces() == null) ? 0 : getWhitePieces().hashCode());
 		return result;
 	}
 
@@ -233,10 +233,10 @@ public class Board {
 				return false;
 		} else if (!getBlackOut().equals(other.getBlackOut()))
 			return false;
-		if (blackPieces == null) {
-			if (other.blackPieces != null)
+		if (getBlackPieces() == null) {
+			if (other.getBlackPieces() != null)
 				return false;
-		} else if (!blackPieces.equals(other.blackPieces))
+		} else if (!getBlackPieces().equals(other.getBlackPieces()))
 			return false;
 		if (getLeftPit() == null) {
 			if (other.getLeftPit() != null)
@@ -258,10 +258,10 @@ public class Board {
 				return false;
 		} else if (!getWhiteOut().equals(other.getWhiteOut()))
 			return false;
-		if (whitePieces == null) {
-			if (other.whitePieces != null)
+		if (getWhitePieces() == null) {
+			if (other.getWhitePieces() != null)
 				return false;
-		} else if (!whitePieces.equals(other.whitePieces))
+		} else if (!getWhitePieces().equals(other.getWhitePieces()))
 			return false;
 		return true;
 	}
@@ -312,6 +312,22 @@ public class Board {
 
 	public void setBlackOut(Dugout blackOut) {
 		this.blackOut = blackOut;
+	}
+
+	public Pieces getBlackPieces() {
+		return blackPieces;
+	}
+
+	public void setBlackPieces(Pieces blackPieces) {
+		this.blackPieces = blackPieces;
+	}
+
+	public Pieces getWhitePieces() {
+		return whitePieces;
+	}
+
+	public void setWhitePieces(Pieces whitePieces) {
+		this.whitePieces = whitePieces;
 	}
 	
 	
