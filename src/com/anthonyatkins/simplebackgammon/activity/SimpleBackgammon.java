@@ -58,23 +58,33 @@ public class SimpleBackgammon extends Activity {
 
     	super.onCreate(savedInstanceState);
     	    	
-    	// FIXME:  prompt to create players or use the last two players.
-    	this.match = new Match(new Player(Constants.BLACK),new Player(Constants.WHITE),1);
-    	this.game = new Game(match);
-    	this.gameView = new GameView(this,game);
-    	gameController = new GameController(gameView,this);
+    	// FIXME:  read the active players from the intent bundle if they exist
+    	
+    	// FIXME: Read the first two active players from the database and make them Black and White in that order
+    	
 		if (savedInstanceState != null) { 
-			restoreData(savedInstanceState);
-			gameController.setGameState(game.getState()); 
+			int gameId = savedInstanceState.getInt(Game._ID);
+			DbOpenHelper dbHelper = new DbOpenHelper(this);
+			SQLiteDatabase db = dbHelper.getReadableDatabase();
+			// Load the match for this game 
+			this.match = DbUtils.getMatchByGameId(gameId,db);
+			// Find the game with the right id
+			this.game = match.getGameById(gameId);
+			if (this.game == null) {
+				this.game = new Game(match);
+			}
 		}
 		else { 
-			gameController.setGameState(Game.STARTUP); 
+			this.match = new Match(new Player(Constants.BLACK),new Player(Constants.WHITE),1);
+			this.game = new Game(match);
 		}
+		
+		this.gameView = new GameView(this,this.game);
+		gameController = new GameController(gameView,this);
+		gameController.setGameState(game.getState()); 
 		
 		setContentView(gameView);
     }
-    
-    
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
@@ -86,17 +96,6 @@ public class SimpleBackgammon extends Activity {
 		// FIXME: save the game state to the database
 		
 		// FIXME: store the game ID in the out bundle, we'll try to restore that if we can.
-	}
-
-	private int restoreData(Bundle savedInstanceState) {
-		if (savedInstanceState != null) {
-			int gameId = savedInstanceState.getInt(Game._ID);
-			DbOpenHelper dbHelper = new DbOpenHelper(this);
-			SQLiteDatabase db = dbHelper.getReadableDatabase();
-			this.game = DbUtils.getGameById(match, gameId, db);
-		}
-		
-		return Game.STARTUP;
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {

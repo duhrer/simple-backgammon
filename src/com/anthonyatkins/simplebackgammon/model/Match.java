@@ -84,4 +84,14 @@ public class Match {
 	public void addGames(List<Game> gamesByMatch) {
 		games.addAll(gamesByMatch);
 	}
+
+	public Game getGameById(int gameId) {
+		for (Game game : games) {
+			if (game.getId() == gameId) {
+				return game;
+			}
+		}
+		
+		return null;
+	}
 }

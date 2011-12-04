@@ -33,12 +33,15 @@ public class StartupActivity extends Activity {
 		DbOpenHelper dbHelper = new DbOpenHelper(this);
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
 		int gameId = DbUtils.getLastUnfinishedGame(db);
+		db.close();
 
-    	// FIXME:  If there's no existing game in progress, prompt to create/pick players, create a match, etc.
+		// FIXME:  If there's no existing game in progress, prompt to create/pick players, create a match, etc.
 		
 		// Start the main activity (with an existing game ID if there is one
 		Intent intent = new Intent(this, SimpleBackgammon.class);
-		if (gameId != -1) { intent.putExtra(Game._ID, gameId); }
+		if (gameId != -1) { 
+			intent.putExtra(Game._ID, gameId); 
+		}
 		startActivityIfNeeded(intent,SimpleBackgammon.ACTIVITY_CODE);
 	}
 

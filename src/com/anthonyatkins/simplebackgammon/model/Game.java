@@ -19,11 +19,11 @@ public class Game {
 		"CREATE TABLE " +
 		TABLE_NAME + " (" +
 		_ID + " integer primary key, " +
-		MATCH + " integer " +
-		BLACK_PLAYER + " integer " +
-		WHITE_PLAYER + " integer " +
-		POINTS + " integer " +
-		FINISHED + " boolean " +
+		MATCH + " integer, " +
+		BLACK_PLAYER + " integer, " +
+		WHITE_PLAYER + " integer, " +
+		POINTS + " integer, " +
+		FINISHED + " boolean, " +
 		CREATED + " datetime " +
 		");";
 	
@@ -36,7 +36,6 @@ public class Game {
 			FINISHED,
 			CREATED
 	};
-
 	
 	// FIXME: We need to uniquely generate this on game creation based on the database.
 	private long id = -1;
@@ -50,7 +49,6 @@ public class Game {
 	private final Date created = new Date();
 	
 	// "states" the game can be in
-	public static final int UNINITIALIZED    = -99;
 	public static final int EXIT			 = -1;
 	public static final int STARTUP          = 0;
 	public static final int PICK_FIRST       = 1;
@@ -61,7 +59,7 @@ public class Game {
 	public static final int SWITCH_PLAYER    = 6;
 	public static final int GAME_OVER        = 99;
 	
-	private int state = UNINITIALIZED;
+	private int state = PICK_FIRST;
 
 	private Slot startSlot;
 	private Slot endSlot;
