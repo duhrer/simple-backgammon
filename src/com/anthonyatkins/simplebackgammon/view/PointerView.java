@@ -50,11 +50,11 @@ public class PointerView extends View {
 		
 		
 		setVisibility(VISIBLE);
-		if (slot.equals(slot.getGame().getSourceSlot())) {
+		if (slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot())) {
 			setImageResource(R.drawable.red_arrow);
 //			setAnimation(null);
 		}
-		else if (slot.equals(slot.getGame().getDestSlot())) {
+		else if (slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot())) {
 			setImageResource(R.drawable.blue_arrow);
 //			setAnimation(null);
 		}

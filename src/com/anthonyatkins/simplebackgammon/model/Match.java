@@ -84,4 +84,7 @@ public class Match {
 	public void setId(long id) {
 		this.id = id;
 	}
+	public void addGames(List<Game> gamesByMatch) {
+		games.addAll(gamesByMatch);
+	}
 }

@@ -10,7 +10,6 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import com.anthonyatkins.simplebackgammon.Constants;
-import com.anthonyatkins.simplebackgammon.activity.SimpleBackgammon;
 import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.Move;
 import com.anthonyatkins.simplebackgammon.model.SimpleDie;
@@ -37,7 +36,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 		int margin = 2;
 		int pieceHeight = (getMeasuredHeight()/5) - margin;
 		int pieceRadius = pieceHeight/2;
-		int stackMinHeight = (int) Math.ceil(slot.pieces.size()/5);
+		int stackMinHeight = (int) Math.ceil(slot.getPieces().size()/5);
 		int centerX = getMeasuredWidth()/2;
 		int textHeight = (int) Math.round(pieceHeight * 0.6);
 		
@@ -53,7 +52,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 		stalagmite.lineTo(getMeasuredWidth(), getMeasuredHeight());
 		stalagmite.close();
 		Paint slotPaint = null;
-		if (slot.position % 2 > 0) {
+		if (slot.getPosition() % 2 > 0) {
 			slotPaint = theme.oddSlotPaint;
 		}
 		else {
@@ -69,17 +68,17 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 				case Game.MOVE_PICK_DEST:
 					// This slot is clickable because someone can move a piece here
 					// we will use images for this shortly, but draw a red dot for now in the right place
-					if (!slot.equals(slot.getGame().getSourceSlot())) {
+					if (!slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot())) {
 						int potentialMovePosition = 5;
-						if (slot.pieces.size() < 5) {
-							potentialMovePosition = slot.pieces.size();
+						if (slot.getPieces().size() < 5) {
+							potentialMovePosition = slot.getPieces().size();
 						}
 						int centerY = (int) (getMeasuredHeight() - ((pieceHeight + margin) * potentialMovePosition) - pieceRadius);
 						
-						if (slot.moves != null && slot.moves.size() > 0) {
+						if (slot.getMoves() != null && slot.getMoves().size() > 0) {
 							Move incomingMove = null;
-							for (Move move: slot.moves) {
-								if (move.getStartSlot().equals(slot.getGame().getSourceSlot())) {
+							for (Move move: slot.getMoves()) {
+								if (move.getStartSlot().equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot())) {
 									incomingMove = move;
 									break;
 								}
@@ -102,22 +101,22 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 		}
 		
 		// draw my pieces
-		if (slot.pieces.size() > 0) {
+		if (slot.getPieces().size() > 0) {
 			Paint piecePaint = null;
-			if (slot.pieces.first().color == Constants.BLACK) {
+			if (slot.getPieces().first().color == Constants.BLACK) {
 				piecePaint = theme.blackPieceFillPaint;
 			}
 			else {
 				piecePaint = theme.whitePieceFillPaint;
 			}
 			
-			double topStackedSlot = slot.pieces.size() % 5;
+			double topStackedSlot = slot.getPieces().size() % 5;
 			double highestSlotPosition = 5;
-			if (slot.pieces.size() < 5) { highestSlotPosition = slot.pieces.size(); }
+			if (slot.getPieces().size() < 5) { highestSlotPosition = slot.getPieces().size(); }
 
 			// If we're the selected slot, we draw one piece in the "sixth" position
-			int pieceCount = slot.pieces.size();
-			if (slot.equals(slot.getGame().getSourceSlot())){
+			int pieceCount = slot.getPieces().size();
+			if (slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot())){
 				pieceCount --;
 			}
 
@@ -134,7 +133,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 					}
 				}
 				
-				if (slot.equals(slot.getGame().getSourceSlot()) && a+1 == highestSlotPosition){
+				if (slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot()) && a+1 == highestSlotPosition){
 					c.drawCircle(centerX, centerY, pieceRadius, theme.pieceSelectedPaint);
 				}
 			}
@@ -143,7 +142,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 	}
 
 	public int compareTo(SimpleSlotView anotherSlotView) {
-		return (this.slot.position - ((SimpleSlotView) anotherSlotView).slot.position);
+		return (this.slot.getPosition() - ((SimpleSlotView) anotherSlotView).slot.getPosition());
 	}
 	
 	private void updateImage(SimpleDie die) {

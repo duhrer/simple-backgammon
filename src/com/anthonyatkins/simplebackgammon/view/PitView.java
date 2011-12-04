@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 
+import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.Pit;
 
 public class PitView extends ViewGroup{
@@ -12,6 +13,7 @@ public class PitView extends ViewGroup{
 	private DiceView diceView;
 	private Pit pit;
 	private Palette theme;
+	private Game game;
 	
 	public PitView(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -28,7 +30,7 @@ public class PitView extends ViewGroup{
 		addView(getTopSlotBankView());
 		setBottomSlotBankView(new SlotBankView(context,pit.bottomSlotBank));
 		addView(getBottomSlotBankView());
-		setDiceView(new DiceView(context, pit.dice,theme));
+		setDiceView(new DiceView(context, pit.getDice(), pit.getGame(), theme));
 		addView(getDiceView());
 		
 		this.setBackgroundColor(theme.pitPaint.getColor());

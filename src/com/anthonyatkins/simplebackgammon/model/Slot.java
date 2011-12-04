@@ -10,13 +10,21 @@ public class Slot implements Comparable<Slot>{
 	
 	public final static int TEXT_SIZE = 8;
 	
-	public Pieces pieces = new Pieces();
+	private Pieces pieces = new Pieces();
 	private final int direction;
-	public final int position;
+	private final int position;
+	public Pieces getPieces() {
+		return pieces;
+	}
+
+	public Moves getMoves() {
+		return moves;
+	}
+
 	private boolean isSourceSlot;
 	private boolean isDestSlot;
 	private Game game = null;
-	public Moves moves = new Moves();
+	private Moves moves = new Moves();
 	
 	public Slot(int direction, int position, Game game) {
 		this.direction = direction;

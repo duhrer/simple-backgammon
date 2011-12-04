@@ -9,7 +9,7 @@ public class Bar extends Slot{
 	}
 	
 	public boolean containsPlayerPieces(int playerColor) {
-		Iterator<Piece> pieceIterator = pieces.iterator();
+		Iterator<Piece> pieceIterator = getPieces().iterator();
 		boolean hasPieces = false;
 		
 		while (pieceIterator.hasNext()) {

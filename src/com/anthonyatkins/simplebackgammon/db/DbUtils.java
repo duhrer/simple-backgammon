@@ -33,90 +33,90 @@ public class DbUtils {
 		return -1;
 	}
 	
-	public static Game getGameById(long gameId, SQLiteDatabase db) {
-		Game game = new Game();
+	public static Game getGameById(Match match, long gameId, SQLiteDatabase db) {
+		Game game = new Game(match);
 
 		if (db.isOpen()) {
 			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game._ID + "=" + gameId,null,null,null,null,null);
 			if (cursor.getCount() > 0) {
 				cursor.moveToFirst();
-				int matchId = cursor.getInt(cursor.getColumnIndex(Game.MATCH));
-				Match match = getMatchById(matchId,game, db);
-				game.setMatch(match);
 				
-				int black_player = cursor.getInt(cursor.getColumnIndex(Game.BLACK_PLAYER));
-				Player blackPlayer = getPlayerById(black_player, Constants.BLACK, game, db);
-				game.setBlackPlayer(blackPlayer);
-
-				int white_player = cursor.getInt(cursor.getColumnIndex(Game.WHITE_PLAYER));
-				Player whitePlayer = getPlayerById(black_player, Constants.WHITE, game, db);
-				game.setWhitePlayer(whitePlayer);
-
-				int points = cursor.getInt(cursor.getColumnIndex(Game.POINTS));
-				game.setPoints(points);
-				
-				boolean finished = cursor.getInt(cursor.getColumnIndex(Game.FINISHED)) == 1 ? true : false;
-				game.setFinished(finished);
-				
-				// get the list of turns 
-				List<Turn> turns = getTurnsByGame(gameId,game,db);
-				
-				// get the list of moves for each turn and replay each move in order
-				Player activePlayer = null;
-				if (turns != null && turns.size() > 0) {
-					for (Turn turn : turns) {
-						activePlayer = turn.getPlayer();
-						List<Move> moves = getMovesByTurn(turn.getId(), game, db);
-						if (moves != null) {
-							for (Move move: moves) {
-								game.makeMove(move);
-							}
-						}
-						
-						game.getGameLog().add(turn);
-					}
-					game.setState(Game.MOVE_PICK_SOURCE);
-				}
-				else {
-					game.setState(Game.STARTUP);
-				}
-				
-				// set the active player based on the last turn
-				game.setActivePlayer(activePlayer);
+				loadGameFromCursor(db, game, cursor);
 			}
 		}
 		
 		return game;
 	}
+
+	private static void loadGameFromCursor(SQLiteDatabase db, Game game,
+			Cursor cursor) {
+		int points = cursor.getInt(cursor.getColumnIndex(Game.POINTS));
+		game.setPoints(points);
+		
+		boolean finished = cursor.getInt(cursor.getColumnIndex(Game.FINISHED)) == 1 ? true : false;
+		game.setFinished(finished);
+
+		// get the list of turns 
+		List<Turn> turns = getTurnsByGame(game,db);
+		
+		// get the list of moves for each turn and replay each move in order
+		Player activePlayer = null;
+		if (turns != null && turns.size() > 0) {
+			for (Turn turn : turns) {
+				activePlayer = turn.getPlayer();
+				List<Move> moves = getMovesByTurn(turn, game, db);
+				if (moves != null) {
+					for (Move move: moves) {
+						game.makeMove(move);
+					}
+				}
+				
+				game.getGameLog().add(turn);
+			}
+			game.setState(Game.MOVE_PICK_SOURCE);
+		}
+		else {
+			game.setState(Game.STARTUP);
+		}
+		
+		// set the active player based on the last turn
+		game.setActivePlayer(activePlayer);
+	}
 	
-	private static Match getMatchById(long matchId, Game game, SQLiteDatabase db) {
+	private static Match getMatchById(long matchId, SQLiteDatabase db) {
 		Match match = new Match();
 		
-		match.setBlackPlayer(game.getBlackPlayer());
-		match.setWhitePlayer(game.getWhitePlayer());
 			
 		
 		if (db.isOpen()) {
 			Cursor cursor = db.query(Match.TABLE_NAME, Match.COLUMNS,null,null,null,null,null,null);
 			if (cursor.getCount() > 0) {
 				cursor.moveToFirst();
+				int blackPlayerId = cursor.getInt(cursor.getColumnIndex(Match.BLACK_PLAYER));
+				Player blackPlayer = getPlayerById(blackPlayerId, Constants.BLACK, db);
+				match.setBlackPlayer(blackPlayer);
+				int whitePlayerId = cursor.getInt(cursor.getColumnIndex(Match.WHITE_PLAYER));
+				Player whitePlayer = getPlayerById(blackPlayerId, Constants.BLACK, db);
+				match.setWhitePlayer(whitePlayer);
 				
 				int numGames = cursor.getInt(cursor.getColumnIndex(Match.FINISHED));
 				match.setNumGames(numGames);
 
 				boolean finished = cursor.getInt(cursor.getColumnIndex(Match.FINISHED)) == 1 ? true : false;
 				match.setFinished(finished);
+				
+				loadMatchGames(match, db);
 			}
 		}
 
 		return match;
 	}
 
-	private static List<Move> getMovesByTurn(long turnId, Game game, SQLiteDatabase db) {
+	private static List<Move> getMovesByTurn(Turn turn, Game game, SQLiteDatabase db) {
 		List<Move> moves = new ArrayList<Move>();
 
 		if (db.isOpen()) {
-			Cursor cursor = db.query(Move.TABLE_NAME, Move.COLUMNS,Move.TURN + "=" + turnId,null,null,null,"order by " + Move.CREATED,null);
+			Cursor cursor = db.query(Move.TABLE_NAME, Move.COLUMNS,Move.TURN + "=" + turn.getId(),null,null,null,"order by " + Move.CREATED,null);
 			if (cursor.getCount() > 0) {
 				cursor.moveToPosition(-1);
 				while (cursor.moveToNext()) {
@@ -126,10 +126,9 @@ public class DbUtils {
 					Slot endSlot = game.getBoard().getPlaySlots().get(endPos);
 
 					int dieValue = cursor.getInt(cursor.getColumnIndex(Move.DIE));
-					int dieColor = cursor.getInt(cursor.getColumnIndex(Move.COLOR));
-					SimpleDie die = new SimpleDie(dieValue,dieColor);
+					SimpleDie die = new SimpleDie(dieValue,turn.getColor());
 					
-					Move move = new Move(startSlot, endSlot, die);
+					Move move = new Move(startSlot, endSlot, die, turn);
 					int createdTimestamp = cursor.getInt(cursor.getColumnIndex(Move.CREATED));
 					Date created = new Date((long) createdTimestamp);
 					move.setCreated(created);
@@ -163,26 +162,16 @@ public class DbUtils {
 	private int deleteMatch(Match match, SQLiteDatabase db) {
 		// Delete all games in this match
 		for (Game game : match.getGames()) {
-			deleteGame(game.getId(),db);
+			deleteGame(game,db);
 		}
 		
 		return db.delete(Match.TABLE_NAME, Match._ID + "=" + match.getId(), null);
 	}
 	
-	private int deleteMatch(long matchId, SQLiteDatabase db) {
-		// Delete all games in this match
-		for (Game game : getGamesByMatch(matchId,db)) {
-			deleteGame(game.getId(),db);
-		}
-		
-		return db.delete(Match.TABLE_NAME, Match._ID + "=" + matchId, null);
-	}
-	
 	private long saveTurn(Turn turn, SQLiteDatabase db) {
 		ContentValues values = new ContentValues();
 
-		// FIXME:  Do something about the game relationship (research first)
-		//values.put(Turn.GAME, turn.getGame().getId());
+		values.put(Turn.GAME, turn.getGame().getId());
 		values.put(Turn.PLAYER, turn.getPlayer().getId());
 		values.put(Turn.COLOR, turn.getColor());
 		values.put(Turn.DIE_ONE, turn.getDice().get(0).getValue());
@@ -201,25 +190,18 @@ public class DbUtils {
 	}
 	
 	private int deleteTurn(Turn turn, SQLiteDatabase db) {
-		return deleteTurn(turn.getId(),db);
-	}
-	
-	private int deleteTurn(long turnId, SQLiteDatabase db) {
-		// FIXME:  Delete all moves in this turn
-		
-		return db.delete(Turn.TABLE_NAME, Turn._ID + "=" + turnId, null);
+		for (Move move : turn.getMoves()) {
+			deleteMove(move, db);
+		}
+		return db.delete(Turn.TABLE_NAME, Turn._ID + "=" + turn.getId(), null);
 	}
 	
 	private long saveMove(Move move, SQLiteDatabase db) {
 		ContentValues values = new ContentValues();
 
-		// FIXME:  Do something about the TURN relationship (research first)
-		//values.put(Move.TURN, move.getTurn().getId());
-		// FIXME:  Do something about the player relationship (research first)
-		//values.put(Move.PLAYER, move.getPlayer().getId());
+		values.put(Move.TURN, move.getTurn().getId());
+		values.put(Move.PLAYER, move.getPlayer().getId());
 		values.put(Move.DIE, move.getDie().getValue());
-		// FIXME:  Something seems wrong about storing color here
-		//values.put(Move.COLOR, move.getColor().getValue());
 		values.put(Move.START_SLOT, move.getStartSlot().getPosition());
 		values.put(Move.END_SLOT, move.getEndSlot().getPosition());
 		values.put(Move.CREATED, move.getCreated().getTime());
@@ -290,28 +272,33 @@ public class DbUtils {
 	}
 
 	private int deleteGame(Game game, SQLiteDatabase db) {
-		return deleteGame(game.getId(), db);
+		for (Turn turn : game.getGameLog()) {
+			deleteTurn(turn, db);
+		}
+		
+		return db.delete(Game.TABLE_NAME, Game._ID + "=" + game.getId(),null);
 	}
 	
-	private int deleteGame(long gameId, SQLiteDatabase db) {
-		// FIXME:  Delete all turns in this game
+	
+	private static void loadMatchGames(Match match, SQLiteDatabase db) {
+		List<Game> games = match.getGames();
 		
-		return db.delete(Game.TABLE_NAME, Game._ID + "=" + gameId,null);
+		if (db.isOpen()) {
+			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.MATCH+ "=" + match.getId(),null,null,null,"order by " + Game.CREATED,null);
+			if (cursor.getCount() > 0) {
+				cursor.moveToPosition(-1);
+				while (cursor.moveToNext()) {
+					loadGameFromCursor(db, new Game(match), cursor);
+				}
+			}
+		}
 	}
 	
-	private static List<Game> getGamesByMatch(long matchId, SQLiteDatabase db) {
-		List<Game> games = new ArrayList<Game>();
-		
-		// FIXME: Map the relationship of games to matches sensibly and retrieve the games here.
-		
-		return games;
-	}
-	
-	private static List<Turn> getTurnsByGame(long gameId, Game game, SQLiteDatabase db) {
+	private static List<Turn> getTurnsByGame(Game game, SQLiteDatabase db) {
 		List<Turn> turns = new ArrayList<Turn>();
 
 		if (db.isOpen()) {
-			Cursor cursor = db.query(Turn.TABLE_NAME, Turn.COLUMNS,Turn.GAME + "=" + gameId,null,null,null,"order by " + Move.CREATED,null);
+			Cursor cursor = db.query(Turn.TABLE_NAME, Turn.COLUMNS,Turn.GAME + "=" + game.getId(),null,null,null,"order by " + Move.CREATED,null);
 			if (cursor.getCount() > 0) {
 				cursor.moveToPosition(-1);
 				while (cursor.moveToNext()) {
@@ -320,17 +307,14 @@ public class DbUtils {
 					int color = cursor.getInt(cursor.getColumnIndex(Turn.COLOR));
 					int d1Value = cursor.getInt(cursor.getColumnIndex(Turn.DIE_ONE));
 					int d2Value = cursor.getInt(cursor.getColumnIndex(Turn.DIE_TWO));
-					int createdTimestamp = cursor.getInt(cursor.getColumnIndex(Turn.CREATED));
-					Player player = getPlayerById(playerId, color, game, db);
+					Player player = getPlayerById(playerId, color, db);
 					
 					SimpleDice dice = new SimpleDice(color);
-					SimpleDie d1 = new SimpleDie(d1Value,color);
-					dice.add(d1);
-					SimpleDie d2 = new SimpleDie(d2Value,color);
-					dice.add(d2);
-					Turn turn = new Turn(player, dice);
+					dice.add(new SimpleDie(d1Value,color));
+					dice.add(new SimpleDie(d2Value,color));
+					Turn turn = new Turn(player, dice, game);
 					
-					List<Move> moves = getMovesByTurn(turnId, game, db);
+					List<Move> moves = getMovesByTurn(turn, game, db);
 					turn.addMoves(moves);
 				}
 			}
@@ -340,8 +324,8 @@ public class DbUtils {
 		return turns;
 	}
 
-	public static Player getPlayerById(long playerId, int color, Game game, SQLiteDatabase db) {
-		Player player = new Player(color, game);
+	public static Player getPlayerById(long playerId, int color, SQLiteDatabase db) {
+		Player player = new Player(color);
 
 		if (db.isOpen()) {
 			Cursor cursor = db.query(Player.TABLE_NAME, Player.COLUMNS,Player._ID + "=" + playerId,null,null,null,null,null);
