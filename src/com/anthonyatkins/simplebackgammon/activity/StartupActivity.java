@@ -43,6 +43,8 @@ public class StartupActivity extends Activity {
 			intent.putExtra(Game._ID, gameId); 
 		}
 		startActivityIfNeeded(intent,SimpleBackgammon.ACTIVITY_CODE);
+		
+		// FIXME:  We need to actually exit if someone calls an exit from a SimpleBackgammon activity.
 	}
 
 }
