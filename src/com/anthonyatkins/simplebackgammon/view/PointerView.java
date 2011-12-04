@@ -10,6 +10,7 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 
 import com.anthonyatkins.simplebackgammon.R;
+import com.anthonyatkins.simplebackgammon.controller.GameController;
 import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.Slot;
 
@@ -50,11 +51,11 @@ public class PointerView extends View {
 		
 		
 		setVisibility(VISIBLE);
-		if (slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot())) {
+		if (isSelectedSlot()) {
 			setImageResource(R.drawable.red_arrow);
 //			setAnimation(null);
 		}
-		else if (slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot())) {
+		else if (isSelectedSlot()) {
 			setImageResource(R.drawable.blue_arrow);
 //			setAnimation(null);
 		}
@@ -84,5 +85,14 @@ public class PointerView extends View {
 
 	public void setImageResource(int imageResource) {
 		this.imageResource = imageResource;
+	}
+	
+	protected boolean isSelectedSlot() {
+		return isSelectedSlot(this.slot);
+	}
+	
+	protected boolean isSelectedSlot(Slot slot) {
+		Slot selectedSlot = slot.getGame().getStartSlot();
+		return selectedSlot != null && slot.equals(selectedSlot);
 	}
 }

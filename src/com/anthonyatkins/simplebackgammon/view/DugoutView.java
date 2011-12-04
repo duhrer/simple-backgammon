@@ -2,10 +2,8 @@ package com.anthonyatkins.simplebackgammon.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.util.AttributeSet;
 
 import com.anthonyatkins.simplebackgammon.Constants;
-import com.anthonyatkins.simplebackgammon.activity.SimpleBackgammon;
 import com.anthonyatkins.simplebackgammon.model.Dugout;
 
 
@@ -15,12 +13,6 @@ public class DugoutView extends SimpleSlotView{
 	private Dugout dugout;
 	private Palette theme;
 	
-	public DugoutView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		this.dugout = new Dugout();
-		this.theme = new DefaultPalette();
-	}
-
 	public DugoutView(Context context, Dugout dugout, Palette theme) {
 		super(context, dugout, theme);
 		this.dugout = dugout;

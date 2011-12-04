@@ -50,11 +50,13 @@ public class Turn {
 		this.color = player.getColor();
 		this.dice = new SimpleDice(dice2);
 		this.game = game;
+		game.getGameLog().add(this);
 	}
 	
 	public Turn(Turn existingTurn, Game game) {
 		this.player = existingTurn.getPlayer();
 		this.game = game;
+		game.getGameLog().add(this);
 		this.color = player.getColor();
 		this.dice = new SimpleDice(existingTurn.dice);
 		for (Move move: existingTurn.moves) {
@@ -65,6 +67,7 @@ public class Turn {
 	public Turn(Turn existingTurn) {
 		this.player = existingTurn.getPlayer();
 		this.game = existingTurn.getGame();
+		game.getGameLog().add(this);
 		this.color = player.getColor();
 		this.dice = new SimpleDice(existingTurn.dice);
 		for (Move move: existingTurn.moves) {
@@ -143,9 +146,5 @@ public class Turn {
 
 	public int getColor() {
 		return color;
-	}
-	
-	public Move getCurrentMove() {
-		return moves.get(moves.size()-1);
 	}
 }

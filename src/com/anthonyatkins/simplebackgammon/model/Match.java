@@ -9,7 +9,7 @@ public class Match {
 	public static final String _ID            = "_id";
 	public static final String BLACK_PLAYER	  = "black_player";
 	public static final String WHITE_PLAYER	  = "white_player";
-	public static final String NUM_GAMES	  = "num_games";
+	public static final String POINTS_TO_WIN	  = "points_to_win";
 	public static final String FINISHED		  = "finished";
 	public static final String CREATED			  = "created";
 	
@@ -20,7 +20,7 @@ public class Match {
 		_ID + " integer primary key, " +
 		BLACK_PLAYER + " integer, " +
 		WHITE_PLAYER + " integer, " +
-		NUM_GAMES + " integer, " +
+		POINTS_TO_WIN + " integer, " +
 		FINISHED + " boolean, " +
 		CREATED + " datetime " +
 		");";
@@ -29,18 +29,24 @@ public class Match {
 			_ID,
 			BLACK_PLAYER,
 			WHITE_PLAYER,
-			NUM_GAMES,
+			POINTS_TO_WIN,
 			FINISHED,
 			CREATED
 	};
 
 	private long id = -1;
-	private Player blackPlayer;
-	private Player whitePlayer;
-	private int numGames;
+	private final Player blackPlayer;
+	private final Player whitePlayer;
+	private final int pointsToWin;
 	private boolean isFinished;
 	private final Date created = new Date();
 	private List<Game> games = new ArrayList<Game>();
+	
+	public Match(Player blackPlayer, Player whitePlayer, int pointsToWin) {
+		this.blackPlayer = blackPlayer;
+		this.whitePlayer = whitePlayer;
+		this.pointsToWin = pointsToWin;
+	}
 	
 	public void addGame(Game game) {
 		games.add(game);
@@ -57,20 +63,11 @@ public class Match {
 	public Player getBlackPlayer() {
 		return blackPlayer;
 	}
-	public void setBlackPlayer(Player blackPlayer) {
-		this.blackPlayer = blackPlayer;
-	}
 	public Player getWhitePlayer() {
 		return whitePlayer;
 	}
-	public void setWhitePlayer(Player whitePlayer) {
-		this.whitePlayer = whitePlayer;
-	}
-	public int getNumGames() {
-		return numGames;
-	}
-	public void setNumGames(int numGames) {
-		this.numGames = numGames;
+	public int getPointsToWin() {
+		return pointsToWin;
 	}
 	public boolean isFinished() {
 		return isFinished;

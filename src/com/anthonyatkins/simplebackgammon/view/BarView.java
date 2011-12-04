@@ -16,12 +16,6 @@ public class BarView extends SimpleSlotView{
 
 	Context context;
 	
-	public BarView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		this.bar = new Bar(null);
-		this.theme = new DefaultPalette();
-	}
-
 	public BarView(Context context, Bar bar, Palette theme) {
 		super(context, bar, theme);
 		this.bar = bar;
@@ -49,7 +43,7 @@ public class BarView extends SimpleSlotView{
 		int centerY = (getMeasuredHeight()/4);
 		if (whitePieces > 0) {
 			// If the player is stuck on the bar, draw the "piece selected" look for the piece(s) on the bar
-			if (slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot()) && slot.getGame().getActivePlayer().getColor()==Constants.WHITE){
+			if (isSelectedSlot() && slot.getGame().getActivePlayer().getColor()==Constants.WHITE){
 				c.drawCircle(centerX, centerY, pieceRadius, theme.pieceSelectedPaint);
 			}
 			else {
@@ -63,7 +57,7 @@ public class BarView extends SimpleSlotView{
 		if (blackPieces > 0) {
 			c.rotate(180,getMeasuredWidth()/2,getMeasuredHeight()/2);
 			// If the player is stuck on the bar, draw the "piece selected" look for the piece(s) on the bar
-			if (slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot()) && slot.getGame().getActivePlayer().getColor()==Constants.BLACK){
+			if (isSelectedSlot() && slot.getGame().getActivePlayer().getColor()==Constants.BLACK){
 				c.drawCircle(centerX, centerY, pieceRadius, theme.pieceSelectedPaint);
 			}
 			else {

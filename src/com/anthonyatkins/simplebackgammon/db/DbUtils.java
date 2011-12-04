@@ -17,6 +17,7 @@ import com.anthonyatkins.simplebackgammon.model.SimpleDice;
 import com.anthonyatkins.simplebackgammon.model.SimpleDie;
 import com.anthonyatkins.simplebackgammon.model.Slot;
 import com.anthonyatkins.simplebackgammon.model.Turn;
+import com.anthonyatkins.simplebackgammon.model.TurnMove;
 
 public class DbUtils {
 
@@ -84,7 +85,6 @@ public class DbUtils {
 	}
 	
 	private static Match getMatchById(long matchId, SQLiteDatabase db) {
-		Match match = new Match();
 		
 			
 		
@@ -94,22 +94,22 @@ public class DbUtils {
 				cursor.moveToFirst();
 				int blackPlayerId = cursor.getInt(cursor.getColumnIndex(Match.BLACK_PLAYER));
 				Player blackPlayer = getPlayerById(blackPlayerId, Constants.BLACK, db);
-				match.setBlackPlayer(blackPlayer);
 				int whitePlayerId = cursor.getInt(cursor.getColumnIndex(Match.WHITE_PLAYER));
-				Player whitePlayer = getPlayerById(blackPlayerId, Constants.BLACK, db);
-				match.setWhitePlayer(whitePlayer);
-				
-				int numGames = cursor.getInt(cursor.getColumnIndex(Match.FINISHED));
-				match.setNumGames(numGames);
+				Player whitePlayer = getPlayerById(whitePlayerId, Constants.BLACK, db);
 
+				int pointsToFinish = cursor.getInt(cursor.getColumnIndex(Match.POINTS_TO_WIN));
+
+				Match match = new Match(blackPlayer,whitePlayer,pointsToFinish);
+				
 				boolean finished = cursor.getInt(cursor.getColumnIndex(Match.FINISHED)) == 1 ? true : false;
 				match.setFinished(finished);
 				
 				loadMatchGames(match, db);
+				return match;
 			}
 		}
 
-		return match;
+		return null;
 	}
 
 	private static List<Move> getMovesByTurn(Turn turn, Game game, SQLiteDatabase db) {
@@ -128,7 +128,7 @@ public class DbUtils {
 					int dieValue = cursor.getInt(cursor.getColumnIndex(Move.DIE));
 					SimpleDie die = new SimpleDie(dieValue,turn.getColor());
 					
-					Move move = new Move(startSlot, endSlot, die, turn);
+					TurnMove move = new TurnMove(startSlot, endSlot, die, turn);
 					int createdTimestamp = cursor.getInt(cursor.getColumnIndex(Move.CREATED));
 					Date created = new Date((long) createdTimestamp);
 					move.setCreated(created);
@@ -144,7 +144,7 @@ public class DbUtils {
 		ContentValues values = new ContentValues();
 		values.put(Match.BLACK_PLAYER, match.getBlackPlayer().getId());
 		values.put(Match.WHITE_PLAYER, match.getWhitePlayer().getId());
-		values.put(Match.NUM_GAMES, match.getNumGames());
+		values.put(Match.POINTS_TO_WIN, match.getPointsToWin());
 		values.put(Match.FINISHED, match.isFinished());
 		values.put(Match.CREATED, match.getCreated().getTime());
 		
@@ -196,7 +196,7 @@ public class DbUtils {
 		return db.delete(Turn.TABLE_NAME, Turn._ID + "=" + turn.getId(), null);
 	}
 	
-	private long saveMove(Move move, SQLiteDatabase db) {
+	private long saveMove(TurnMove move, SQLiteDatabase db) {
 		ContentValues values = new ContentValues();
 
 		values.put(Move.TURN, move.getTurn().getId());
