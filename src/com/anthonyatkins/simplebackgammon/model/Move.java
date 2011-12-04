@@ -13,7 +13,7 @@ public class Move implements Comparable {
 	public static final String END_SLOT	      = "end_slot";
 	public static final String CREATED		  = "created";
 	
-	public static final String TABLE_NAME = "match";
+	public static final String TABLE_NAME = "move";
 	public static final String TABLE_CREATE = 
 		"CREATE TABLE " +
 		TABLE_NAME + " (" +

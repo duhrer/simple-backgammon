@@ -20,10 +20,9 @@ import com.anthonyatkins.simplebackgammon.model.Turn;
 import com.anthonyatkins.simplebackgammon.model.TurnMove;
 
 public class DbUtils {
-
 	public static int getLastUnfinishedGame(SQLiteDatabase db) {
 		if (db.isOpen()) {
-			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.FINISHED + "=false",null,null,null,Game.CREATED + " desc","limit 1");
+			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.FINISHED + "='false'",null,null,null,Game.CREATED + " desc","1");
 			if (cursor.getCount() > 0) {
 				cursor.moveToFirst();
 				int id = cursor.getInt(cursor.getColumnIndex(Game._ID));
@@ -49,7 +48,7 @@ public class DbUtils {
 		return game;
 	}
 
-	private static void loadGameFromCursor(SQLiteDatabase db, Game game,
+	public static void loadGameFromCursor(SQLiteDatabase db, Game game,
 			Cursor cursor) {
 		int points = cursor.getInt(cursor.getColumnIndex(Game.POINTS));
 		game.setPoints(points);
@@ -77,17 +76,14 @@ public class DbUtils {
 			game.setState(Game.MOVE_PICK_SOURCE);
 		}
 		else {
-			game.setState(Game.STARTUP);
+			game.setState(Game.PICK_FIRST);
 		}
 		
 		// set the active player based on the last turn
 		game.setActivePlayer(activePlayer);
 	}
 	
-	private static Match getMatchById(long matchId, SQLiteDatabase db) {
-		
-			
-		
+	public static Match getMatchById(long matchId, SQLiteDatabase db) {
 		if (db.isOpen()) {
 			Cursor cursor = db.query(Match.TABLE_NAME, Match.COLUMNS,null,null,null,null,null,null);
 			if (cursor.getCount() > 0) {
@@ -112,7 +108,7 @@ public class DbUtils {
 		return null;
 	}
 
-	private static List<Move> getMovesByTurn(Turn turn, Game game, SQLiteDatabase db) {
+	public static List<Move> getMovesByTurn(Turn turn, Game game, SQLiteDatabase db) {
 		List<Move> moves = new ArrayList<Move>();
 
 		if (db.isOpen()) {
@@ -140,7 +136,7 @@ public class DbUtils {
 		return moves;
 	}
 	
-	private long saveMatch(Match match, SQLiteDatabase db) {
+	public static long saveMatch(Match match, SQLiteDatabase db) {
 		ContentValues values = new ContentValues();
 		values.put(Match.BLACK_PLAYER, match.getBlackPlayer().getId());
 		values.put(Match.WHITE_PLAYER, match.getWhitePlayer().getId());
@@ -159,7 +155,7 @@ public class DbUtils {
 		}
 	}
 	
-	private int deleteMatch(Match match, SQLiteDatabase db) {
+	public static int deleteMatch(Match match, SQLiteDatabase db) {
 		// Delete all games in this match
 		for (Game game : match.getGames()) {
 			deleteGame(game,db);
@@ -168,7 +164,7 @@ public class DbUtils {
 		return db.delete(Match.TABLE_NAME, Match._ID + "=" + match.getId(), null);
 	}
 	
-	private long saveTurn(Turn turn, SQLiteDatabase db) {
+	public static long saveTurn(Turn turn, SQLiteDatabase db) {
 		ContentValues values = new ContentValues();
 
 		values.put(Turn.GAME, turn.getGame().getId());
@@ -189,14 +185,14 @@ public class DbUtils {
 		}
 	}
 	
-	private int deleteTurn(Turn turn, SQLiteDatabase db) {
+	public static int deleteTurn(Turn turn, SQLiteDatabase db) {
 		for (Move move : turn.getMoves()) {
 			deleteMove(move, db);
 		}
 		return db.delete(Turn.TABLE_NAME, Turn._ID + "=" + turn.getId(), null);
 	}
 	
-	private long saveMove(TurnMove move, SQLiteDatabase db) {
+	public static long saveMove(TurnMove move, SQLiteDatabase db) {
 		ContentValues values = new ContentValues();
 
 		values.put(Move.TURN, move.getTurn().getId());
@@ -217,15 +213,15 @@ public class DbUtils {
 		}
 	}
 	
-	private int deleteMove(Move move, SQLiteDatabase db) {
+	public static int deleteMove(Move move, SQLiteDatabase db) {
 		return deleteMove(move.getId(),db);
 	}
 	
-	private int deleteMove(long moveId, SQLiteDatabase db) {
+	public static int deleteMove(long moveId, SQLiteDatabase db) {
 		return db.delete(Move.TABLE_NAME, Move._ID + "=" + moveId, null);
 	}
 	
-	private long savePlayer(Player player, SQLiteDatabase db) {
+	public static long savePlayer(Player player, SQLiteDatabase db) {
 		ContentValues values = new ContentValues();
 		values.put(Player.NAME, player.getName());
 		
@@ -240,16 +236,16 @@ public class DbUtils {
 		}
 	}
 	
-	private int deletePlayer(Player player, SQLiteDatabase db) {
+	public static int deletePlayer(Player player, SQLiteDatabase db) {
 		return deletePlayer(player.getId(), db);
 	}
 	
-	private int deletePlayer(long playerId, SQLiteDatabase db) {
+	public static int deletePlayer(long playerId, SQLiteDatabase db) {
 		return db.delete(Player.TABLE_NAME, Player._ID + "=" + playerId, null);
 	}
 	
 	
-	private long saveGame(Game game, SQLiteDatabase db) {
+	public static long saveGame(Game game, SQLiteDatabase db) {
 		ContentValues values = new ContentValues();
 		values.put(Game.MATCH, game.getMatch().getId());
 		values.put(Game.BLACK_PLAYER, game.getBlackPlayer().getId());
@@ -271,7 +267,7 @@ public class DbUtils {
 		}
 	}
 
-	private int deleteGame(Game game, SQLiteDatabase db) {
+	public static int deleteGame(Game game, SQLiteDatabase db) {
 		for (Turn turn : game.getGameLog()) {
 			deleteTurn(turn, db);
 		}
@@ -280,9 +276,7 @@ public class DbUtils {
 	}
 	
 	
-	private static void loadMatchGames(Match match, SQLiteDatabase db) {
-		List<Game> games = match.getGames();
-		
+	public static void loadMatchGames(Match match, SQLiteDatabase db) {
 		if (db.isOpen()) {
 			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.MATCH+ "=" + match.getId(),null,null,null,"order by " + Game.CREATED,null);
 			if (cursor.getCount() > 0) {
@@ -294,7 +288,7 @@ public class DbUtils {
 		}
 	}
 	
-	private static List<Turn> getTurnsByGame(Game game, SQLiteDatabase db) {
+	public static List<Turn> getTurnsByGame(Game game, SQLiteDatabase db) {
 		List<Turn> turns = new ArrayList<Turn>();
 
 		if (db.isOpen()) {
@@ -302,7 +296,6 @@ public class DbUtils {
 			if (cursor.getCount() > 0) {
 				cursor.moveToPosition(-1);
 				while (cursor.moveToNext()) {
-					int turnId = cursor.getInt(cursor.getColumnIndex(Turn._ID));
 					int playerId = cursor.getInt(cursor.getColumnIndex(Turn.PLAYER));
 					int color = cursor.getInt(cursor.getColumnIndex(Turn.COLOR));
 					int d1Value = cursor.getInt(cursor.getColumnIndex(Turn.DIE_ONE));
@@ -337,6 +330,20 @@ public class DbUtils {
 		}
 		
 		return player;
+	}
+
+	public static Match getMatchByGameId(int gameId, SQLiteDatabase db) {
+		
+		if (db.isOpen()) {
+			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game._ID + "=" + gameId,null,null,null,null,null);
+			if (cursor.getCount() > 0) {
+				cursor.moveToFirst();	
+				int matchId = cursor.getInt(cursor.getColumnIndex(Game.MATCH));
+				return getMatchById(matchId, db);
+			}
+		}		
+
+		return null;
 	}
 }
 

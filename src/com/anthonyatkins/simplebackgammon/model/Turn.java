@@ -14,7 +14,7 @@ public class Turn {
 	public static final String DIE_TWO	      = "d2";
 	public static final String CREATED        = "created";
 	
-	public static final String TABLE_NAME = "match";
+	public static final String TABLE_NAME = "turn";
 	public static final String TABLE_CREATE = 
 		"CREATE TABLE " +
 		TABLE_NAME + " (" +
