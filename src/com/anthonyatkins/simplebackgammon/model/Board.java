@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.anthonyatkins.simplebackgammon.Constants;
 
@@ -35,8 +36,7 @@ public class Board {
 		try {
 			initializeSlots();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.e(getClass().getName(), "Error initializing board.", e);
 		}
 	}
 	
@@ -68,7 +68,7 @@ public class Board {
 		try {
 			initializeSlots(board.getBoardState());
 		} catch (Exception e) {
-			e.printStackTrace();
+			Log.e(getClass().getName(), "Error initializing board.", e);
 		}
 		
 	}
@@ -118,8 +118,7 @@ public class Board {
 		try {
 			initializeSlots(boardStateList);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.e(getClass().getName(), "Error initializing board.", e);
 		}
 	}
 	
