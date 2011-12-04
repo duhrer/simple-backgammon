@@ -9,7 +9,6 @@ public class Move implements Comparable {
 
 	public static final String PLAYER		      = "player";
 	public static final String DIE		      = "die";
-	public static final String COLOR		  = "color";
 	public static final String START_SLOT     = "start_slot";
 	public static final String END_SLOT	      = "end_slot";
 	public static final String CREATED		  = "created";
@@ -22,7 +21,6 @@ public class Move implements Comparable {
 		TURN + " integer, " +
 		PLAYER + " integer, " +
 		DIE + " integer, " +
-		COLOR + " integer, " +
 		START_SLOT + " integer, " +
 		END_SLOT  + " integer, " +
 		CREATED + " datetime " +
@@ -33,32 +31,46 @@ public class Move implements Comparable {
 			TURN,
 			PLAYER,
 			DIE,
-			COLOR,
 			START_SLOT,
 			END_SLOT,
 			CREATED
 	};
 	
 	private long id = -1;
-	private final Slot startSlot;
-	private final Slot endSlot;
+	private Slot startSlot;
+	private Slot endSlot;
 	// FIXME:  Find some way of handling moves that involve more than one die, not necessarily in the move object, but somewhere
 	private final SimpleDie die;
+	private final Player player;
+	private final Turn turn;
 	private boolean pieceBumped = false;
 	private Date created = new Date();
 
-	public Move(Slot startSlot, Slot endSlot, SimpleDie die) {
+	public Move(Slot startSlot, Slot endSlot, SimpleDie die, Turn turn) {
 		this.startSlot = startSlot;
 		this.endSlot = endSlot;
 		this.die = die;
+		this.player = turn.getPlayer();
+		this.turn = turn;
 	}
 
 	public Move (Move existingMove) {
-		this.startSlot = existingMove.startSlot;
-		this.endSlot = existingMove.endSlot;
+		this.startSlot = existingMove.getStartSlot();
+		this.endSlot = existingMove.getEndSlot();
+		// clone this so that changes to the original dice won't be reflected here
 		this.die = new SimpleDie(existingMove.die);
+		this.player = existingMove.getPlayer();
+		this.turn = existingMove.getTurn();
 	}
 	
+	public Turn getTurn() {
+		return this.turn;
+	}
+
+	public Player getPlayer() {
+		return player;
+	}
+
 	public boolean equals(Object obj) {
 		if (!(obj instanceof Move)) return false;
 		
@@ -82,11 +94,11 @@ public class Move implements Comparable {
 			else if (this.created.before(((Move) another).created)) { return -1; }
 			
 			/* sort by startSlot position if there is a difference */
-			if (anotherMove.startSlot.position > this.startSlot.position) { return 1; }
-			else if (anotherMove.startSlot.position < this.startSlot.position) { return -1; }
+			if (anotherMove.startSlot.getPosition() > this.startSlot.getPosition()) { return 1; }
+			else if (anotherMove.startSlot.getPosition() < this.startSlot.getPosition()) { return -1; }
 			/* otherwise, sort by endSlot position if there is a difference */
-			else if (anotherMove.endSlot.position > this.endSlot.position) { return 1; }
-			else if (anotherMove.endSlot.position < this.endSlot.position) { return -1; }
+			else if (anotherMove.endSlot.getPosition() > this.endSlot.getPosition()) { return 1; }
+			else if (anotherMove.endSlot.getPosition() < this.endSlot.getPosition()) { return -1; }
 
 			return this.die.getValue() - anotherMove.die.getValue();
 		}
@@ -115,6 +127,14 @@ public class Move implements Comparable {
 		return startSlot;
 	}
 
+	public void setStartSlot(Slot startSlot) {
+		this.startSlot = startSlot;
+	}
+
+	public void setEndSlot(Slot endSlot) {
+		this.endSlot = endSlot;
+	}
+
 	public Slot getEndSlot() {
 		return endSlot;
 	}
@@ -129,5 +149,13 @@ public class Move implements Comparable {
 
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	public void clearStartSlot() {
+		this.startSlot = null;			
+	}
+
+	public void clearEndSlot() {
+		this.endSlot = null;
 	}
 }

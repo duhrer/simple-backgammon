@@ -44,8 +44,8 @@ public class Board {
 		setBar(new Bar(game));  // the holding slot for "bumped" pieces
 		setWhiteOut(new Dugout(-1, Constants.WHITE,game)); // the holding slot for white pieces that have made it home
 		setBlackOut(new Dugout(24, Constants.BLACK,game)); // ditto for black pieces
-		setLeftPit(new Pit(game.getWhitePlayer().getDice()));
-		setRightPit(new Pit(game.getBlackPlayer().getDice()));
+		setLeftPit(new Pit(game.getWhitePlayer().getDice(),game));
+		setRightPit(new Pit(game.getBlackPlayer().getDice(), game));
 		setWhitePieces(game.getWhitePlayer().getPieces());
 		setBlackPieces(game.getBlackPlayer().getPieces());
 		
@@ -78,21 +78,21 @@ public class Board {
 	}
 	public ArrayList<Integer> getBoardState() {
 		ArrayList<Integer> boardState = new ArrayList<Integer>();
-		boardState.add(this.getWhiteOut().pieces.size());
+		boardState.add(this.getWhiteOut().getPieces().size());
 		for (int a=0;a<=23;a++) {
 			Slot slot = this.getPlaySlots().get(a);
-			if (slot != null && slot.pieces.size() > 0) {
-				boardState.add(slot.pieces.size() * slot.pieces.first().color);
+			if (slot != null && slot.getPieces().size() > 0) {
+				boardState.add(slot.getPieces().size() * slot.getPieces().first().color);
 			}
 			else {
 				boardState.add(0);
 			}
 		}
 		
-		boardState.add(this.getBlackOut().pieces.size());
+		boardState.add(this.getBlackOut().getPieces().size());
 		int blackPiecesOnBar = 0;
 		int whitePiecesOnBar = 0;
-		Iterator<Piece> pieceIterator = this.getBar().pieces.iterator();
+		Iterator<Piece> pieceIterator = this.getBar().getPieces().iterator();
 		while (pieceIterator.hasNext()) {
 			Piece piece = pieceIterator.next();
 			if (piece.color == Constants.BLACK) { blackPiecesOnBar++; }
@@ -129,34 +129,34 @@ public class Board {
 		}
 		else {
 			// Initialize the White dugout
-			getWhiteOut().pieces.clear();
+			getWhiteOut().getPieces().clear();
 			if (Math.abs(boardState.get(0)) > 0) {
-				getWhiteOut().pieces.addMultiple(Math.abs(boardState.get(0)), Constants.WHITE, 0);
+				getWhiteOut().getPieces().addMultiple(Math.abs(boardState.get(0)), Constants.WHITE, 0);
 			}
 			// Initialize the playSlots
 			for (int a=0; a<24; a++) {
-				getPlaySlots().get(a).pieces.clear();
+				getPlaySlots().get(a).getPieces().clear();
 				if (Math.abs(boardState.get(a+1)) > 0) {
-					getPlaySlots().get(a).pieces.addMultiple(Math.abs(boardState.get(a+1)),(int) Math.signum(boardState.get(a+1)),a);
+					getPlaySlots().get(a).getPieces().addMultiple(Math.abs(boardState.get(a+1)),(int) Math.signum(boardState.get(a+1)),a);
 				}
 			}
 			// Initialize the Black Dugout
-			getBlackOut().pieces.clear();
+			getBlackOut().getPieces().clear();
 			if (Math.abs(boardState.get(25)) > 0) {
-				getBlackOut().pieces.addMultiple(Math.abs(boardState.get(25)), Constants.BLACK, 0);
+				getBlackOut().getPieces().addMultiple(Math.abs(boardState.get(25)), Constants.BLACK, 0);
 			}
 			
 			// remove any existing pieces from the bar
-			getBar().pieces.clear();
+			getBar().getPieces().clear();
 
 			// Initialize the bar for black pieces (slot 26)
 			if (Math.abs(boardState.get(26)) > 0) { 
-				getBar().pieces.addMultiple(Math.abs(boardState.get(26)), Constants.BLACK, 0);
+				getBar().getPieces().addMultiple(Math.abs(boardState.get(26)), Constants.BLACK, 0);
 			}
 
 			// Initialize the bar for white pieces (slot 27)
 			if (Math.abs(boardState.get(27)) > 0) {
-				getBar().pieces.addMultiple(Math.abs(boardState.get(27)), Constants.WHITE, 0);
+				getBar().getPieces().addMultiple(Math.abs(boardState.get(27)), Constants.WHITE, 0);
 			}
 		}
 		
@@ -166,16 +166,16 @@ public class Board {
 		getBlackPieces().clear();
 		
 		// The dugouts are easy, they can only contain one color
-		Iterator<Piece> blackOutIterator = getBlackOut().pieces.iterator();
+		Iterator<Piece> blackOutIterator = getBlackOut().getPieces().iterator();
 		while (blackOutIterator.hasNext()) { getBlackPieces().add(blackOutIterator.next()); }
 
-		Iterator<Piece> whiteOutIterator = getWhiteOut().pieces.iterator();
+		Iterator<Piece> whiteOutIterator = getWhiteOut().getPieces().iterator();
 		while (whiteOutIterator.hasNext()) { getWhitePieces().add(whiteOutIterator.next()); }
 		
 		
 		// The slots can contain either color, so we have to check it
 		for (int b=0; b <24; b++) {
-			Iterator<Piece> slotIterator = getPlaySlots().get(b).pieces.iterator();
+			Iterator<Piece> slotIterator = getPlaySlots().get(b).getPieces().iterator();
 			while (slotIterator.hasNext()) {
 				Piece tempPiece = slotIterator.next();
 				if (tempPiece.color == Constants.BLACK) { getBlackPieces().add(tempPiece); }
@@ -184,7 +184,7 @@ public class Board {
 		}
 		
 		// The bar can contain both colors, so we have to check the color
-		Iterator<Piece> slotIterator = getBar().pieces.iterator();
+		Iterator<Piece> slotIterator = getBar().getPieces().iterator();
 		while (slotIterator.hasNext()) {
 			Piece tempPiece = slotIterator.next();
 			if (tempPiece.color == Constants.BLACK) { getBlackPieces().add(tempPiece); }

@@ -8,22 +8,33 @@ import android.graphics.Rect;
 import android.view.View;
 
 import com.anthonyatkins.simplebackgammon.Constants;
-import com.anthonyatkins.simplebackgammon.activity.SimpleBackgammon;
 import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.GameDie;
 import com.anthonyatkins.simplebackgammon.model.SimpleDie;
 
 public class DieView extends View {
-	public SimpleDie die;
+	private final SimpleDie die;
+	private final Game game;
 	private int imageResource;
 	private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private Palette theme = null;
 	
-	public DieView(Context context, SimpleDie die, Palette theme) {
+	public DieView(Context context, SimpleDie die, Game game, Palette theme) {
 		super(context);
 		this.die = die;
+		this.game = game;
 		this.theme=theme;
 		updateImage();
+	}
+
+
+	public SimpleDie getDie() {
+		return die;
+	}
+
+
+	public Game getGame() {
+		return game;
 	}
 
 
@@ -88,12 +99,10 @@ public class DieView extends View {
 		int gameState = Game.UNINITIALIZED;
 		int activePlayerColor = 0;
 		if (die instanceof GameDie) {
-			if (((GameDie) die).getGame() != null) {
-				if (((GameDie) die).getGame().getActivePlayer() != null) {
-					activePlayerColor = ((GameDie) die).getGame().getActivePlayer().getColor();
-				}
-				gameState = ((GameDie) die).getGame().getState();
+			if (game.getActivePlayer() != null) {
+				activePlayerColor = game.getActivePlayer().getColor();
 			}
+			gameState = game.getState();
 			if (gameState != Game.PICK_FIRST && activePlayerColor != die.getColor()) {
 				this.setVisibility(INVISIBLE);
 			}
@@ -109,7 +118,7 @@ public class DieView extends View {
 
 		if (die instanceof GameDie) {
 			// Draw a simple "prohibit" across a die that has no moves
-			if (!((GameDie) die).isUsed() && !((GameDie) die).hasMoves() && ((GameDie) die).getGame().getState() != Game.PICK_FIRST && ((GameDie) die).getGame().getState() != Game.GAME_OVER) {
+			if (!((GameDie) die).isUsed() && !((GameDie) die).hasMoves() && game.getState() != Game.PICK_FIRST && game.getState() != Game.GAME_OVER) {
 				canvas.drawLine(0, 0, getMeasuredWidth(), getMeasuredHeight(), theme.dieBlockedPaint);
 			}
 		}

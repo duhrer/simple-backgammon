@@ -2,13 +2,19 @@ package com.anthonyatkins.simplebackgammon.model;
 
 public class Pit {
 	public SlotBank topSlotBank;
-	public GameDice dice;
-	public SlotBank bottomSlotBank; 
+	private final GameDice dice;
+	public SlotBank bottomSlotBank;
+	private final Game game; 
 	
-	public Pit(GameDice dice) {		
+	public Pit(GameDice dice, Game game) {		
 		topSlotBank = new SlotBank(SlotBank.L_R);
 		bottomSlotBank = new SlotBank(SlotBank.R_L);
 		this.dice = dice;
+		this.game = game;
+	}
+
+	public GameDice getDice() {
+		return dice;
 	}
 
 	@Override
@@ -48,6 +54,10 @@ public class Pit {
 		} else if (!topSlotBank.equals(other.topSlotBank))
 			return false;
 		return true;
+	}
+
+	public Game getGame() {
+		return this.game;
 	}
 	
 	

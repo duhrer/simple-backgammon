@@ -21,7 +21,7 @@ import com.anthonyatkins.simplebackgammon.controller.GameController;
 import com.anthonyatkins.simplebackgammon.db.DbOpenHelper;
 import com.anthonyatkins.simplebackgammon.db.DbUtils;
 import com.anthonyatkins.simplebackgammon.model.Game;
-import com.anthonyatkins.simplebackgammon.model.SavedGame;
+import com.anthonyatkins.simplebackgammon.model.Match;
 import com.anthonyatkins.simplebackgammon.view.GameView;
 
 public class SimpleBackgammon extends Activity {
@@ -38,7 +38,8 @@ public class SimpleBackgammon extends Activity {
 	public static final String NAMESPACE = "android";
 	public static final int ACTIVITY_CODE = 111;
 	
-	Game game = null;
+	Match match;
+	Game game;
 	GameView gameView = null;
 	GameController gameController = null;
 	
@@ -56,7 +57,8 @@ public class SimpleBackgammon extends Activity {
 
     	super.onCreate(savedInstanceState);
     	    	
-    	this.game = new Game();
+    	this.match = new Match();
+    	this.game = new Game(match);
     	this.gameView = new GameView(this,game);
     	gameController = new GameController(gameView);
 		if (savedInstanceState != null) { 
@@ -89,8 +91,7 @@ public class SimpleBackgammon extends Activity {
 			int gameId = savedInstanceState.getInt(Game._ID);
 			DbOpenHelper dbHelper = new DbOpenHelper(this);
 			SQLiteDatabase db = dbHelper.getReadableDatabase();
-			Game restoredGame = DbUtils.getGameById(gameId, db);
-			game.clone(restoredGame);
+			this.game = DbUtils.getGameById(match, gameId, db);
 		}
 		
 		return Game.STARTUP;
@@ -154,7 +155,7 @@ public class SimpleBackgammon extends Activity {
 	private boolean handleUndo() {
 		switch (game.getState()) {
 			case Game.MOVE_PICK_DEST:
-				gameView.getGame().setSourceSlot(null);
+				gameView.getGame().getCurrentTurn().getCurrentMove().clearStartSlot();
 				gameController.setGameState(Game.MOVE_PICK_SOURCE);
 				return true;
 	
@@ -170,17 +171,4 @@ public class SimpleBackgammon extends Activity {
 		}
 		return false;
 	}
-	
-	
-//	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-//		if (savedInstanceState != null) { 
-//			restoreData(savedInstanceState);
-//			gameController.setGameState(Game.LOAD_SAVE);
-//		}
-//		else { 
-//			gameController.setGameState(Game.STARTUP); 
-//		}
-//		
-//		super.onRestoreInstanceState(savedInstanceState);
-//	}	
 }

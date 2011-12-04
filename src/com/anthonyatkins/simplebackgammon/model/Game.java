@@ -2,8 +2,6 @@ package com.anthonyatkins.simplebackgammon.model;
 
 import java.util.Date;
 
-import android.util.Log;
-
 import com.anthonyatkins.simplebackgammon.Constants;
 
 public class Game {
@@ -42,11 +40,10 @@ public class Game {
 	
 	// FIXME: We need to uniquely generate this on game creation based on the database.
 	private long id = -1;
-	private Board board;
-	private Player blackPlayer;
-	private Player whitePlayer;
-//	public Dialog dialog;
-	private GameLog gameLog = new GameLog();
+	private final Board board;
+	private final Player blackPlayer;
+	private final Player whitePlayer;
+	private final GameLog gameLog;
 	private Turn currentTurn;
 	// The current value of the doubling cube
 	private int points = 1;
@@ -65,26 +62,30 @@ public class Game {
 	public static final int GAME_OVER        = 99;
 	
 	private int state = UNINITIALIZED;
-	private Slot sourceSlot = null;
-	private Slot destSlot = null;
 
 	// FIXME:  We have no code to manage matches yet
-	private Match match;
+	private final Match match;
 	private boolean isFinished = false;
 
-	public Game() {
-		initialize();
-    }
+	public Game(Match match) {
+		this.match = match;
+		match.addGame(this);
+		
+		this.gameLog = new GameLog();
+		
+		this.whitePlayer = (new Player(Constants.WHITE)); 
+		this.blackPlayer = (new Player(Constants.BLACK)); 
+
+		this.board = (new Board(this));
+	}
 
 	/* Create a new game based on an existing game.   Used primarily for unit tests. */
 	public Game(Game baselineGame) {
-		clone(baselineGame);
-	}
-
-	public void clone(Game baselineGame) {
-		this.setBlackPlayer(new Player(baselineGame.getBlackPlayer(), this));
-		this.setWhitePlayer(new Player(baselineGame.getWhitePlayer(), this));
-		this.setBoard(new Board(baselineGame.getBoard(), this));
+		this.match = baselineGame.getMatch();
+		match.addGame(this);
+		this.blackPlayer = (new Player(baselineGame.getBlackPlayer()));
+		this.whitePlayer  = (new Player(baselineGame.getWhitePlayer()));
+		this.board = (new Board(baselineGame.getBoard(), this));
 		
 		if (baselineGame.getActivePlayer() == null ) {
 			// do nothing
@@ -96,33 +97,10 @@ public class Game {
 			setActivePlayer(getWhitePlayer());
 		}
 		
-		this.setGameLog(new GameLog(baselineGame.getGameLog()));
+		this.gameLog = (new GameLog(baselineGame.getGameLog()));
 		
 		if (baselineGame.currentTurn != null) {
 			this.currentTurn = new Turn(baselineGame.currentTurn, this);
-		}
-	}
-
-	public void initialize() {
-//		if (dialog == null) { dialog = new Dialog(); }
-//		else { dialog.setMessage(null); }
-
-		/* If we're starting a new game in the same session, we need to clear out the existing data.
-		 * Among other things, this should fix the display of the last winning move on the GAME_START screen. */
-		currentTurn = null;
-		getGameLog().clear();
-		
-		if (getWhitePlayer() == null) { setWhitePlayer(new Player(Constants.WHITE, this)); }
-		if (getBlackPlayer() == null) { setBlackPlayer(new Player(Constants.BLACK, this)); }
-
-		// If the board already exists we are reinitializing it.  That method will clear out the player pieces.
-		if (getBoard() == null) { setBoard(new Board(this)); }
-		else { 
-			try {
-				getBoard().initializeSlots();
-			} catch (Exception e) {
-				Log.e(getClass().getName(), "Error initializing slots on board", e);
-			}
 		}
 	}
 
@@ -157,22 +135,6 @@ public class Game {
 		this.state = state;
 	}
 
-	public Slot getSourceSlot() {
-		return sourceSlot;
-	}
-
-	public void setSourceSlot(Slot sourceSlot) {
-		this.sourceSlot = sourceSlot;
-	}
-
-	public Slot getDestSlot() {
-		return destSlot;
-	}
-
-	public void setDestSlot(Slot destSlot) {
-		this.destSlot = destSlot;
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -186,12 +148,7 @@ public class Game {
 		result = prime * result
 				+ ((currentTurn == null) ? 0 : currentTurn.hashCode());
 		result = prime * result
-				+ ((destSlot == null) ? 0 : destSlot.hashCode());
-//		result = prime * result + ((dialog == null) ? 0 : dialog.hashCode());
-		result = prime * result
 				+ ((getInactivePlayer() == null) ? 0 : getInactivePlayer().hashCode());
-		result = prime * result
-				+ ((sourceSlot == null) ? 0 : sourceSlot.hashCode());
 		result = prime * result + state;
 		result = prime * result
 				+ ((getWhitePlayer() == null) ? 0 : getWhitePlayer().hashCode());
@@ -232,25 +189,10 @@ public class Game {
 				return false;
 		} else if (!currentTurn.equals(other.currentTurn))
 			return false;
-		if (destSlot == null) {
-			if (other.destSlot != null)
-				return false;
-		} else if (!destSlot.equals(other.destSlot))
-			return false;
-//		if (dialog == null) {
-//			if (other.dialog != null)
-//				return false;
-//		} else if (!dialog.equals(other.dialog))
-//			return false;
 		if (getInactivePlayer() == null) {
 			if (other.getInactivePlayer() != null)
 				return false;
 		} else if (!getInactivePlayer().equals(other.getInactivePlayer()))
-			return false;
-		if (sourceSlot == null) {
-			if (other.sourceSlot != null)
-				return false;
-		} else if (!sourceSlot.equals(other.sourceSlot))
 			return false;
 		if (state != other.state)
 			return false;
@@ -267,16 +209,8 @@ public class Game {
 		setActivePlayer(currentInactivePlayer);
 	}
 
-	public void setBlackPlayer(Player blackPlayer) {
-		this.blackPlayer = blackPlayer;
-	}
-
 	public Player getBlackPlayer() {
 		return blackPlayer;
-	}
-
-	public void setWhitePlayer(Player whitePlayer) {
-		this.whitePlayer = whitePlayer;
 	}
 
 	public Player getWhitePlayer() {
@@ -303,15 +237,11 @@ public class Game {
 		this.isFinished  = isFinished;
 	}
 
-	public void setMatch(Match match) {
-		this.match = match;
-	}
-
 	public void makeMove(Move move) {
-		Slot startSlot = getBoard().getPlaySlots().get(move.getStartSlot().position);
+		Slot startSlot = getBoard().getPlaySlots().get(move.getStartSlot().getPosition());
 		Piece piece = startSlot.removePiece();
 		
-		Slot endSlot = getBoard().getPlaySlots().get(move.getStartSlot().position);
+		Slot endSlot = getBoard().getPlaySlots().get(move.getStartSlot().getPosition());
 		endSlot.addPiece(piece);
 	}
 
@@ -335,16 +265,8 @@ public class Game {
 		return gameLog;
 	}
 
-	public void setGameLog(GameLog gameLog) {
-		this.gameLog = gameLog;
-	}
-
 	public Board getBoard() {
 		return board;
-	}
-
-	public void setBoard(Board board) {
-		this.board = board;
 	}
 
 	public Date getCreated() {

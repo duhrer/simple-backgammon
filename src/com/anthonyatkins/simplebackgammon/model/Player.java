@@ -13,7 +13,6 @@ public class Player {
 	private Pieces pieces = new Pieces();
 	private Moves moves = new Moves();
 	private Move selectedMove = null;
-	private Game game;
 	private boolean active = false;
 	private String name = "Unknown Player";
 	
@@ -38,19 +37,16 @@ public class Player {
 			NAME
 	};
 	
-	public Player(int color, Game game) {
+	public Player(int color) {
 		this.color = color;
-		this.game = game;
-		this.setDice(new GameDice(color, game, this));
+		this.setDice(new GameDice(color, this));
 	}
 
-	public Player(Player existingPlayer, Game game) {
+	public Player(Player existingPlayer) {
 		this.id = existingPlayer.getId();
 		this.name = existingPlayer.getName();
 		this.color = existingPlayer.getColor();
 		this.setDice(new GameDice(existingPlayer.getDice()));
-		
-		this.game = game;
 	}
 
 	public ArrayList<String> getDiceState() {
@@ -141,10 +137,6 @@ public class Player {
 		} else if (!getDice().equals(other.getDice()))
 			return false;
 		return true;
-	}
-
-	public void setGame(Game game) {
-		this.game = game;
 	}
 
 	public void setActive(boolean active) {

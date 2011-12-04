@@ -46,7 +46,7 @@ public class DugoutView extends SimpleSlotView{
 		}
 		
 		// draw pieces in rows of five from top to bottom
-		for (int a=0; a < dugout.pieces.size(); a++) {
+		for (int a=0; a < dugout.getPieces().size(); a++) {
 			int row = (int) Math.floor(a/DugoutView.PIECES_PER_ROW);
 			int column = a % DugoutView.PIECES_PER_ROW;
 			int x = margin + (column * (pieceWidth+margin));

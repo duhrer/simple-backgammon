@@ -3,8 +3,6 @@ package com.anthonyatkins.simplebackgammon.model;
 import java.util.Date;
 import java.util.List;
 
-import com.anthonyatkins.simplebackgammon.Constants;
-
 
 public class Turn {
 	// Database setup information
@@ -41,51 +39,22 @@ public class Turn {
 	
 	private long id = -1;
 	private Moves moves = new Moves();
-	private Player player;
-	private SimpleDice dice;
-	private int color;
+	private final Player player;
+	private final Game game;
+	private final SimpleDice dice;
+	private final int color;
 	private final Date created = new Date();
 
-	public Moves getMoves() {
-		return moves;
-	}
-
-	public void setMoves(Moves moves) {
-		this.moves = moves;
-	}
-
-	public Player getPlayer() {
-		return player;
-	}
-
-	public void setPlayer(Player player) {
-		this.player = player;
-	}
-
-	public SimpleDice getDice() {
-		return dice;
-	}
-
-	public void setDice(SimpleDice dice) {
-		this.dice = dice;
-	}
-
-	public int getColor() {
-		return color;
-	}
-
-	public void setColor(int color) {
-		this.color = color;
-	}
-
-	public Turn(Player player, SimpleDice dice2) {
+	public Turn(Player player, SimpleDice dice2, Game game) {
 		this.player = player;
 		this.color = player.getColor();
 		this.dice = new SimpleDice(dice2);
+		this.game = game;
 	}
 	
-	public Turn(Turn existingTurn) {
-		this.player = existingTurn.player;
+	public Turn(Turn existingTurn, Game game) {
+		this.player = existingTurn.getPlayer();
+		this.game = game;
 		this.color = player.getColor();
 		this.dice = new SimpleDice(existingTurn.dice);
 		for (Move move: existingTurn.moves) {
@@ -93,27 +62,19 @@ public class Turn {
 		}
 	}
 	
-	public Turn(Turn existingTurn, Game game) {
-		if (existingTurn != null) {
-			if (existingTurn.player != null) {
-				if (existingTurn.player.getColor() == Constants.BLACK) {
-					this.player = game.getBlackPlayer();
-				}
-				else {
-					this.player = game.getWhitePlayer();
-				}
-			}
-			if (existingTurn.dice != null) {
-				this.dice = new SimpleDice(existingTurn.dice);
-				for (Move move: existingTurn.moves) {
-					moves.add(new Move(move));
-				}
-			}
-
-			this.color = player.getColor();
+	public Turn(Turn existingTurn) {
+		this.player = existingTurn.getPlayer();
+		this.game = existingTurn.getGame();
+		this.color = player.getColor();
+		this.dice = new SimpleDice(existingTurn.dice);
+		for (Move move: existingTurn.moves) {
+			moves.add(new Move(move));
 		}
 	}
-
+	
+	public Game getGame() {
+		return this.game;
+	}
 
 	@Override
 	public int hashCode() {
@@ -166,5 +127,25 @@ public class Turn {
 	
 	public Date getCreated() {
 		return created;
+	}
+	
+	public Moves getMoves() {
+		return moves;
+	}
+
+	public Player getPlayer() {
+		return player;
+	}
+
+	public SimpleDice getDice() {
+		return dice;
+	}
+
+	public int getColor() {
+		return color;
+	}
+	
+	public Move getCurrentMove() {
+		return moves.get(moves.size()-1);
 	}
 }

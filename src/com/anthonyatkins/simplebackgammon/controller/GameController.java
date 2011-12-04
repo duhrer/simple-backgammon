@@ -51,7 +51,7 @@ public class GameController {
 		private Slot selectedSlot;
 		@Override
 		public void onClick(View view) {
-			gameView.getGame().setSourceSlot(this.selectedSlot);
+			gameView.getGame().getCurrentTurn().getCurrentMove().setStartSlot(this.selectedSlot);
 			setGameState(Game.MOVE_PICK_DEST);
 		}
 
@@ -107,7 +107,7 @@ public class GameController {
 		if (gameView.getGame().getActivePlayer() != null) {
 			gameView.getGame().getActivePlayer().getMoves().clear();
 			for (Slot slot: gameView.getGame().getBoard().getPlaySlots()) {
-				slot.moves.clear();
+				slot.getMoves().clear();
 			}
 		}
 	}
@@ -133,7 +133,6 @@ public class GameController {
 		switch (state) {
 			case Game.STARTUP:
 				removeAllListeners();
-				gameView.getGame().initialize();
 				
 				twoPlayerDialog.setMessage("Touch to pick first player.");
 				twoPlayerDialog.setNextState(Game.PICK_FIRST);
@@ -180,7 +179,7 @@ public class GameController {
 				if (gameView.getGame().getCurrentTurn() != null) {
 					gameView.getGame().getGameLog().add(new Turn(gameView.getGame().getCurrentTurn()));
 				}
-				gameView.getGame().setCurrentTurn(new Turn(gameView.getGame().getActivePlayer(), gameView.getGame().getActivePlayer().getDice()));
+				gameView.getGame().setCurrentTurn(new Turn(gameView.getGame().getActivePlayer(), gameView.getGame().getActivePlayer().getDice(), gameView.getGame()));
 				
 				setGameState(Game.MOVE_PICK_SOURCE);
 				break;
@@ -189,17 +188,17 @@ public class GameController {
 				clearDetectedMoves();
 				
 				gameView.getGame().getActivePlayer().setSelectedMove(null);
-				gameView.getGame().setSourceSlot(null);
+				gameView.getGame().getCurrentTurn().getCurrentMove().clearStartSlot();
 
 				// If we have pieces on the bar, that's our only option at first
 				if (gameView.getGame().getBoard().getBar().containsPlayerPieces(gameView.getGame().getActivePlayer().getColor())) {
-					gameView.getGame().setSourceSlot(gameView.getGame().getBoard().getBar());
+					gameView.getGame().getCurrentTurn().getCurrentMove().setStartSlot(gameView.getGame().getBoard().getBar());
 					getAvailableMovesFromBar();
 					if (gameView.getGame().getActivePlayer().getMoves().size() > 0) {
 						Iterator<Move> moveIterator = gameView.getGame().getActivePlayer().getMoves().iterator();
 						while (moveIterator.hasNext()) {
 							Move move = moveIterator.next();
-							AnimatedSlotView slotView = gameView.getBoardView().getPlaySlotViews().get(move.getEndSlot().position);
+							AnimatedSlotView slotView = gameView.getBoardView().getPlaySlotViews().get(move.getEndSlot().getPosition());
 							addListener(slotView,new MovePieceListener(move));
 						}
 					}
@@ -218,7 +217,7 @@ public class GameController {
 						Iterator<Move> moveIterator = gameView.getGame().getActivePlayer().getMoves().iterator();
 						while (moveIterator.hasNext()) {
 							Move move = moveIterator.next();
-							AnimatedSlotView slotView = gameView.getBoardView().getPlaySlotViews().get(move.getStartSlot().position);
+							AnimatedSlotView slotView = gameView.getBoardView().getPlaySlotViews().get(move.getStartSlot().getPosition());
 							addListener(slotView,new SelectSlotListener(move.getStartSlot()));
 						}
 					}
@@ -238,18 +237,18 @@ public class GameController {
 				removeAllListeners();
 
 				// If we started on the bar, we can touch the bar to cancel our move.
-				if (gameView.getGame().getSourceSlot().equals(gameView.getGame().getBoard().getBar())) {
+				if (gameView.getGame().getCurrentTurn().getCurrentMove().getStartSlot().equals(gameView.getGame().getBoard().getBar())) {
 					addListener(gameView.getBoardView().getCombinedBarView().getBarView(),new ChangeStateListener(Game.MOVE_PICK_SOURCE));
 				}
 				// otherwise, wire up the possible destination slots based on the source slot
 				else {
-					AnimatedSlotView sourceSlotView = gameView.getBoardView().getPlaySlotViews().get(gameView.getGame().getSourceSlot().position);
+					AnimatedSlotView sourceSlotView = gameView.getBoardView().getPlaySlotViews().get(gameView.getGame().getCurrentTurn().getCurrentMove().getStartSlot().getPosition());
 					addListener(sourceSlotView,new ChangeStateListener(Game.MOVE_PICK_SOURCE));
 				}
 				
 				// highlight the destination areas for the selected slot
 				// and add handlers that point to MAKE_MOVE				
-				Iterator<Move> moveIterator = gameView.getGame().getActivePlayer().movesForSlot(gameView.getGame().getSourceSlot()).iterator();
+				Iterator<Move> moveIterator = gameView.getGame().getActivePlayer().movesForSlot(gameView.getGame().getCurrentTurn().getCurrentMove().getStartSlot()).iterator();
 				while (moveIterator.hasNext()) {
 					Move potentialMove = moveIterator.next();
 					View destinationSlotView = null;
@@ -262,7 +261,7 @@ public class GameController {
 						}
 					}
 					else {
-						destinationSlotView = gameView.getBoardView().getPlaySlotViews().get(potentialMove.getEndSlot().position);
+						destinationSlotView = gameView.getBoardView().getPlaySlotViews().get(potentialMove.getEndSlot().getPosition());
 					}
 					addListener(destinationSlotView,new MovePieceListener(potentialMove));
 				}
@@ -283,15 +282,6 @@ public class GameController {
 				removeAllListeners();
 				
 				gameView.getGame().switchPlayers();
-				// Combine these two steps into a single event for now
-//				if (gameView.game.getActivePlayer().color == Constants.BLACK) {
-//					singlePlayerDialog.setMessage("Click to roll Black dice.");
-//				}
-//				else {
-//					singlePlayerDialog.setMessage("Click to roll White dice.");
-//				}
-//				singlePlayerDialog.setNextState(Game.ROLL);
-//				singlePlayerDialog.show();
 				setGameState(Game.ROLL);
 				break;
 			case Game.GAME_OVER:
@@ -314,10 +304,10 @@ public class GameController {
 	public void makeMove() {
 		Piece pieceToMove = null;
 		View sourceSlotView = null;
-		if (gameView.getGame().getSourceSlot().equals(gameView.getGame().getBoard().getBar())) {
+		if (gameView.getGame().getCurrentTurn().getCurrentMove().getStartSlot().equals(gameView.getGame().getBoard().getBar())) {
 			sourceSlotView = gameView.getBoardView().getCombinedBarView().getBarView();
 			// get the first piece of my color and move it to the destination, then invalidate the bar and the destination
-			Iterator<Piece> pieceIterator = gameView.getGame().getBoard().getBar().pieces.iterator();
+			Iterator<Piece> pieceIterator = gameView.getGame().getBoard().getBar().getPieces().iterator();
 			while (pieceIterator.hasNext()) {
 				Piece thisPiece = pieceIterator.next();	
 				if (thisPiece.color == gameView.getGame().getActivePlayer().getColor()) {
@@ -327,13 +317,13 @@ public class GameController {
 			}
 		}
 		else {
-			sourceSlotView = gameView.getBoardView().getPlaySlotViews().get(gameView.getGame().getSourceSlot().position);
-			pieceToMove = gameView.getGame().getSourceSlot().pieces.get(0);
+			sourceSlotView = gameView.getBoardView().getPlaySlotViews().get(gameView.getGame().getCurrentTurn().getCurrentMove().getStartSlot().getPosition());
+			pieceToMove = gameView.getGame().getCurrentTurn().getCurrentMove().getStartSlot().getPieces().get(0);
 		}
 		
 		if (pieceToMove != null) {
 			// take the piece out of its old location
-			gameView.getGame().getSourceSlot().removePiece(pieceToMove);
+			gameView.getGame().getCurrentTurn().getCurrentMove().getStartSlot().removePiece(pieceToMove);
 			sourceSlotView.invalidate();
 								
 			// add the piece to the new location
@@ -347,10 +337,10 @@ public class GameController {
 			}
 			else {
 				Slot destinationSlot = gameView.getGame().getActivePlayer().getSelectedMove().getEndSlot();
-				View destinationSlotView = gameView.getBoardView().getPlaySlotViews().get(destinationSlot.position);
+				View destinationSlotView = gameView.getBoardView().getPlaySlotViews().get(destinationSlot.getPosition());
 				// "bump" a piece from the slot if there's one of the opposite color there
-				if (destinationSlot.pieces.size() > 0) {
-					Piece targetPiece = destinationSlot.pieces.first();
+				if (destinationSlot.getPieces().size() > 0) {
+					Piece targetPiece = destinationSlot.getPieces().first();
 					if (targetPiece.color != gameView.getGame().getActivePlayer().getColor()) {
 						gameView.getGame().getActivePlayer().getSelectedMove().setPieceBumped(true);
 						destinationSlot.removePiece(targetPiece);
@@ -368,7 +358,7 @@ public class GameController {
 			
 			// Flag the die associated with this move as used
 			gameView.getGame().getActivePlayer().getSelectedMove().getDie().setUsed();
-			gameView.getGame().setSourceSlot(null);
+			gameView.getGame().getCurrentTurn().getCurrentMove().clearStartSlot();
 
 			// Add the selected move to the list of moves for this turn (so we can undo the move on demand)
 			gameView.getGame().getCurrentTurn().getMoves().add(gameView.getGame().getActivePlayer().getSelectedMove());
@@ -418,7 +408,7 @@ public class GameController {
 	 * @param slot  The slot to check.
 	 */
 	public void getAvailableMovesFromSlot(Slot slot) {
-		int slotPosition = slot.position;
+		int slotPosition = slot.getPosition();
 		List<Integer> uniqueDieValues = new ArrayList<Integer>();
 		
 		Iterator<SimpleDie> dieIterator = gameView.getGame().getActivePlayer().getDice().iterator();
@@ -431,9 +421,9 @@ public class GameController {
 				if (diePosition >= 0 && diePosition <= 23) {
 						Slot destinationSlot = gameView.getGame().getBoard().getPlaySlots().get(diePosition);
 						if (!destinationSlot.isBlocked(gameView.getGame().getActivePlayer().getColor())) { 
-							Move potentialMove = new Move(slot,destinationSlot,die);
+							Move potentialMove = new Move(slot,destinationSlot,die, gameView.getGame().getCurrentTurn());
 							gameView.getGame().getActivePlayer().getMoves().add(potentialMove);
-							destinationSlot.moves.add(potentialMove);
+							destinationSlot.getMoves().add(potentialMove);
 						}
 				}
 				else if (playerCanMoveOut()) {
@@ -442,16 +432,16 @@ public class GameController {
 					if (gameView.getGame().getActivePlayer().getColor() == Constants.BLACK) { 
 						
 						if (diePosition == 24 || (gameView.getGame().getActivePlayer().getPieces().first().position == slotPosition && diePosition > 24)) {
-							Move potentialMove = new Move(slot,gameView.getBoardView().getCombinedBarView().getBlackOutView().slot,die);
+							Move potentialMove = new Move(slot,gameView.getBoardView().getCombinedBarView().getBlackOutView().slot,die, gameView.getGame().getCurrentTurn());
 							gameView.getGame().getActivePlayer().getMoves().add(potentialMove);
-							gameView.getBoardView().getCombinedBarView().getBlackOutView().slot.moves.add(potentialMove);
+							gameView.getBoardView().getCombinedBarView().getBlackOutView().slot.getMoves().add(potentialMove);
 						}
 					}
 					else { 
 						if (diePosition == -1 || (gameView.getGame().getActivePlayer().getPieces().last().position == slotPosition && diePosition < -1)) {
-							Move potentialMove = new Move(slot,gameView.getBoardView().getCombinedBarView().getWhiteOutView().slot,die);
+							Move potentialMove = new Move(slot,gameView.getBoardView().getCombinedBarView().getWhiteOutView().slot,die, gameView.getGame().getCurrentTurn());
 							gameView.getGame().getActivePlayer().getMoves().add(potentialMove);
-							gameView.getBoardView().getCombinedBarView().getWhiteOutView().slot.moves.add(potentialMove);
+							gameView.getBoardView().getCombinedBarView().getWhiteOutView().slot.getMoves().add(potentialMove);
 						}
 					}
 				}
@@ -484,9 +474,9 @@ public class GameController {
 					int dieSlotPosition = startSlotPosition + (gameView.getGame().getActivePlayer().getColor() * dieValue);
 					Slot destinationSlot = gameView.getGame().getBoard().getPlaySlots().get(dieSlotPosition);
 					if (!destinationSlot.isBlocked(gameView.getGame().getActivePlayer().getColor())) {
-						Move potentialMove = new Move(gameView.getGame().getBoard().getBar(), destinationSlot,die);
+						Move potentialMove = new Move(gameView.getGame().getBoard().getBar(), destinationSlot,die, gameView.getGame().getCurrentTurn());
 						gameView.getGame().getActivePlayer().getMoves().add(potentialMove);
-						destinationSlot.moves.add(potentialMove);
+						destinationSlot.getMoves().add(potentialMove);
 					}
 				}			
 			}
@@ -503,7 +493,7 @@ public class GameController {
 			myDugout = gameView.getGame().getBoard().getWhiteOut();
 		}
 
-		if (myDugout.pieces.size() == 15) { return true; }
+		if (myDugout.getPieces().size() == 15) { return true; }
 		
 		return false;
 	}
@@ -536,7 +526,7 @@ public class GameController {
 
 				// Undo the last move
 				Piece undoPiece = null;
-				for (Piece piece: lastMove.getEndSlot().pieces) {
+				for (Piece piece: lastMove.getEndSlot().getPieces()) {
 					if (piece.color == gameView.getGame().getCurrentTurn().getPlayer().getColor()) {
 						undoPiece = piece;
 						break;
@@ -549,7 +539,7 @@ public class GameController {
 			
 				// If we bumped someone, put them back in their rightful place... :)
 				if (lastMove.isPieceBumped() == true) {
-					for (Piece piece : gameView.getGame().getBoard().getBar().pieces) {
+					for (Piece piece : gameView.getGame().getBoard().getBar().getPieces()) {
 						if (piece.color != gameView.getGame().getCurrentTurn().getPlayer().getColor()) {
 							lastMove.getEndSlot().addPiece(piece);
 							gameView.getGame().getBoard().getBar().removePiece(piece);
@@ -593,7 +583,7 @@ public class GameController {
 					gameView.getBoardView().getCombinedBarView().getWhiteOutView().invalidate();
 				}
 				else {
-					gameView.getBoardView().getPlaySlotViews().get(lastMove.getEndSlot().position).invalidate();
+					gameView.getBoardView().getPlaySlotViews().get(lastMove.getEndSlot().getPosition()).invalidate();
 				}
 				
 				// For the source view, only the bar is a special case
@@ -601,13 +591,13 @@ public class GameController {
 					gameView.getBoardView().getCombinedBarView().getBarView().invalidate();
 				}
 				else {
-					gameView.getBoardView().getPlaySlotViews().get(lastMove.getStartSlot().position).invalidate();
+					gameView.getBoardView().getPlaySlotViews().get(lastMove.getStartSlot().getPosition()).invalidate();
 				}
 			}
 			
 			// clear out the previously selected source and destination slot
-			gameView.getGame().setSourceSlot(null);
-			gameView.getGame().setDestSlot(null);
+			gameView.getGame().getCurrentTurn().getCurrentMove().clearStartSlot();
+			gameView.getGame().getCurrentTurn().getCurrentMove().clearEndSlot();
 		}
 	}
 
@@ -618,17 +608,19 @@ public class GameController {
 		Iterator<Move> moveIterator = gameView.getGame().getActivePlayer().getMoves().iterator();
 		while (moveIterator.hasNext()) {
 			Move move = moveIterator.next();
-			if (move.getStartSlot().position == startPosition && move.getEndSlot().position == endPosition) {
+			if (move.getStartSlot().getPosition() == startPosition && move.getEndSlot().getPosition() == endPosition) {
 				gameView.getGame().getActivePlayer().setSelectedMove(move);
-				gameView.getGame().setSourceSlot(move.getStartSlot());
-				gameView.getGame().setDestSlot(move.getEndSlot());
+				gameView.getGame().getCurrentTurn().getCurrentMove().setStartSlot(move.getStartSlot());
+				gameView.getGame().getCurrentTurn().getCurrentMove().setEndSlot(move.getEndSlot());
 				
 				break;
 			}
 		}
 		
-		if (gameView.getGame().getSourceSlot() != null && gameView.getGame().getSourceSlot().position == startPosition &&
-				gameView.getGame().getDestSlot() != null && gameView.getGame().getDestSlot().position == endPosition) {
+		Slot startSlot = gameView.getGame().getCurrentTurn().getCurrentMove().getStartSlot();
+		Slot endSlot = gameView.getGame().getCurrentTurn().getCurrentMove().getEndSlot();
+		if (startSlot != null && startSlot.getPosition() == startPosition &&
+				endSlot != null && endSlot.getPosition() == endPosition) {
 			makeMove();
 		}
 
