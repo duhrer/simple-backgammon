@@ -3,7 +3,6 @@ package com.anthonyatkins.simplebackgammon.view;
 import java.util.Iterator;
 
 import android.content.Context;
-import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -15,19 +14,14 @@ public class DiceView extends ViewGroup{
 	private SimpleDice dice;
 	private final Context context; 
 	private Palette theme;
-	private Game game;
+	private final Game game;
 	
-	public DiceView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		this.context = context;
-	}
-
 	public DiceView(Context context, SimpleDice dice, Game game, Palette theme) {
 		super(context);
 		this.context = context;
 		this.dice = dice;
 		this.theme = theme;
-		
+		this.game = game;
 		
 		// Add child views for all the dice in the set
 		Iterator<SimpleDie> dieIterator = dice.iterator();

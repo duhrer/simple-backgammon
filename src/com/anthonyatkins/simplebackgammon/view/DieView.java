@@ -96,19 +96,15 @@ public class DieView extends View {
 	
 	@Override
 	protected void onDraw(Canvas canvas) {
-		int gameState = Game.UNINITIALIZED;
 		int activePlayerColor = 0;
-		if (die instanceof GameDie) {
-			if (game.getActivePlayer() != null) {
-				activePlayerColor = game.getActivePlayer().getColor();
-			}
-			gameState = game.getState();
-			if (gameState != Game.PICK_FIRST && activePlayerColor != die.getColor()) {
-				this.setVisibility(INVISIBLE);
-			}
-			else {
-				setVisibility(VISIBLE);
-			}
+		if (game.getActivePlayer() != null) {
+			activePlayerColor = game.getActivePlayer().getColor();
+		}
+		if (game.getState() != Game.PICK_FIRST && activePlayerColor != die.getColor()) {
+			this.setVisibility(INVISIBLE);
+		}
+		else {
+			setVisibility(VISIBLE);
 		}
 		
 		if (die.isUsed()) { this.setAlpha(128);}
@@ -116,7 +112,7 @@ public class DieView extends View {
 
 		canvas.drawBitmap(BitmapFactory.decodeResource(getResources(),imageResource), null, new Rect(0,0,getMeasuredWidth(),getMeasuredHeight()), paint);
 
-		if (die instanceof GameDie) {
+		if (game != null) {
 			// Draw a simple "prohibit" across a die that has no moves
 			if (!((GameDie) die).isUsed() && !((GameDie) die).hasMoves() && game.getState() != Game.PICK_FIRST && game.getState() != Game.GAME_OVER) {
 				canvas.drawLine(0, 0, getMeasuredWidth(), getMeasuredHeight(), theme.dieBlockedPaint);

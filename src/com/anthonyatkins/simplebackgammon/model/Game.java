@@ -44,7 +44,6 @@ public class Game {
 	private final Player blackPlayer;
 	private final Player whitePlayer;
 	private final GameLog gameLog;
-	private Turn currentTurn;
 	// The current value of the doubling cube
 	private int points = 1;
 
@@ -52,6 +51,7 @@ public class Game {
 	
 	// "states" the game can be in
 	public static final int UNINITIALIZED    = -99;
+	public static final int EXIT			 = -1;
 	public static final int STARTUP          = 0;
 	public static final int PICK_FIRST       = 1;
 	public static final int ROLL             = 2;
@@ -63,6 +63,14 @@ public class Game {
 	
 	private int state = UNINITIALIZED;
 
+	private Slot startSlot;
+	private Slot endSlot;
+	// The turn that will eventually be added to the GameLog
+	private Turn currentTurn;
+	
+	// The list of potential moves
+	private final Moves potentialMoves = new Moves();
+	
 	// FIXME:  We have no code to manage matches yet
 	private final Match match;
 	private boolean isFinished = false;
@@ -98,10 +106,6 @@ public class Game {
 		}
 		
 		this.gameLog = (new GameLog(baselineGame.getGameLog()));
-		
-		if (baselineGame.currentTurn != null) {
-			this.currentTurn = new Turn(baselineGame.currentTurn, this);
-		}
 	}
 
 	public Player getActivePlayer() {
@@ -119,6 +123,8 @@ public class Game {
 			getBlackPlayer().setActive(false);
 			getWhitePlayer().setActive(true);
 		}
+		
+		this.currentTurn = new Turn(activePlayer,activePlayer.getDice(),this);
 	}
 
 	public Player getInactivePlayer() {
@@ -145,8 +151,6 @@ public class Game {
 		result = prime * result
 				+ ((getBlackPlayer() == null) ? 0 : getBlackPlayer().hashCode());
 		result = prime * result + ((getBoard() == null) ? 0 : getBoard().hashCode());
-		result = prime * result
-				+ ((currentTurn == null) ? 0 : currentTurn.hashCode());
 		result = prime * result
 				+ ((getInactivePlayer() == null) ? 0 : getInactivePlayer().hashCode());
 		result = prime * result + state;
@@ -184,11 +188,6 @@ public class Game {
 				return false;
 		} else if (!getBoard().equals(other.getBoard()))
 			return false;
-		if (currentTurn == null) {
-			if (other.currentTurn != null)
-				return false;
-		} else if (!currentTurn.equals(other.currentTurn))
-			return false;
 		if (getInactivePlayer() == null) {
 			if (other.getInactivePlayer() != null)
 				return false;
@@ -218,11 +217,11 @@ public class Game {
 	}
 	
 	public Turn getCurrentTurn() {
-		return currentTurn;
+		return this.currentTurn;
 	}
-
-	public void setCurrentTurn(Turn currentTurn) {
-		this.currentTurn = currentTurn;
+	
+	public void setCurrentTurn(Turn turn) {
+		this.currentTurn = turn;
 	}
 
 	public int getPoints() {
@@ -271,5 +270,30 @@ public class Game {
 
 	public Date getCreated() {
 		return created;
+	}
+
+	public Slot getStartSlot() {
+		return startSlot;
+	}
+
+	public void setStartSlot(Slot startSlot) {
+		this.startSlot = startSlot;
+	}
+
+	public Slot getEndSlot() {
+		return endSlot;
+	}
+
+	public void setEndSlot(Slot endSlot) {
+		this.endSlot = endSlot;
+	}
+
+	public void clearSelectedSlots() {
+		this.startSlot = null;
+		this.endSlot = null;
+	}
+	
+	public Moves getPotentialMoves() {
+		return potentialMoves;
 	}
 }

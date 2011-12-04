@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
-import android.util.AttributeSet;
 import android.view.View;
 
 import com.anthonyatkins.simplebackgammon.Constants;
@@ -20,12 +19,6 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 	public Slot slot;
 	private int imageResource;
 	
-	public SimpleSlotView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		this.slot = new Slot(Slot.DOWN,0);
-		this.theme = new DefaultPalette();
-	}
-
 	public SimpleSlotView(Context context, Slot slot, Palette theme) {
 		super(context);
 		this.slot = slot;
@@ -68,7 +61,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 				case Game.MOVE_PICK_DEST:
 					// This slot is clickable because someone can move a piece here
 					// we will use images for this shortly, but draw a red dot for now in the right place
-					if (!slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot())) {
+					if (!isSelectedSlot()) {
 						int potentialMovePosition = 5;
 						if (slot.getPieces().size() < 5) {
 							potentialMovePosition = slot.getPieces().size();
@@ -78,7 +71,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 						if (slot.getMoves() != null && slot.getMoves().size() > 0) {
 							Move incomingMove = null;
 							for (Move move: slot.getMoves()) {
-								if (move.getStartSlot().equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot())) {
+								if (isSelectedSlot(move.getStartSlot())) {
 									incomingMove = move;
 									break;
 								}
@@ -116,7 +109,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 
 			// If we're the selected slot, we draw one piece in the "sixth" position
 			int pieceCount = slot.getPieces().size();
-			if (slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot())){
+			if (isSelectedSlot()){
 				pieceCount --;
 			}
 
@@ -133,12 +126,20 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 					}
 				}
 				
-				if (slot.equals(slot.getGame().getCurrentTurn().getCurrentMove().getStartSlot()) && a+1 == highestSlotPosition){
+				if (isSelectedSlot() && a+1 == highestSlotPosition){
 					c.drawCircle(centerX, centerY, pieceRadius, theme.pieceSelectedPaint);
 				}
 			}
 		}
 		super.onDraw(c);
+	}
+
+	protected boolean isSelectedSlot() {
+		return isSelectedSlot(this.slot);
+	}
+	
+	protected boolean isSelectedSlot(Slot slot) {
+		return slot.getGame().getStartSlot() != null && slot.equals(slot.getGame().getStartSlot());
 	}
 
 	public int compareTo(SimpleSlotView anotherSlotView) {

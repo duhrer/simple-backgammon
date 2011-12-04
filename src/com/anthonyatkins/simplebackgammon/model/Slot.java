@@ -23,7 +23,7 @@ public class Slot implements Comparable<Slot>{
 
 	private boolean isSourceSlot;
 	private boolean isDestSlot;
-	private Game game = null;
+	private final Game game;
 	private Moves moves = new Moves();
 	
 	public Slot(int direction, int position, Game game) {
@@ -32,16 +32,6 @@ public class Slot implements Comparable<Slot>{
 		this.game = game;
 	}
 	
-	/**
-	 * Build a slot without an associated game.  Useful for tutorial levels or test cases.
-	 * @param direction Whether the slot is a stalactite (pointing down) or a stalagmite (pointing up)
-	 * @param position The position of this slot relative to other slots.
-	 */
-	public Slot(int direction, int position) {
-		this.direction = direction;
-		this.position = position;
-	}
-
 	public void addPiece(Piece piece) {
 		piece.position=this.position;
 		pieces.add(piece);

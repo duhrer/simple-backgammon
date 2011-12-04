@@ -22,6 +22,7 @@ import com.anthonyatkins.simplebackgammon.db.DbOpenHelper;
 import com.anthonyatkins.simplebackgammon.db.DbUtils;
 import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.Match;
+import com.anthonyatkins.simplebackgammon.model.Player;
 import com.anthonyatkins.simplebackgammon.view.GameView;
 
 public class SimpleBackgammon extends Activity {
@@ -57,10 +58,11 @@ public class SimpleBackgammon extends Activity {
 
     	super.onCreate(savedInstanceState);
     	    	
-    	this.match = new Match();
+    	// FIXME:  prompt to create players or use the last two players.
+    	this.match = new Match(new Player(Constants.BLACK),new Player(Constants.WHITE),1);
     	this.game = new Game(match);
     	this.gameView = new GameView(this,game);
-    	gameController = new GameController(gameView);
+    	gameController = new GameController(gameView,this);
 		if (savedInstanceState != null) { 
 			restoreData(savedInstanceState);
 			gameController.setGameState(game.getState()); 
@@ -155,7 +157,8 @@ public class SimpleBackgammon extends Activity {
 	private boolean handleUndo() {
 		switch (game.getState()) {
 			case Game.MOVE_PICK_DEST:
-				gameView.getGame().getCurrentTurn().getCurrentMove().clearStartSlot();
+				gameController.clearSelectedSlots();
+
 				gameController.setGameState(Game.MOVE_PICK_SOURCE);
 				return true;
 	

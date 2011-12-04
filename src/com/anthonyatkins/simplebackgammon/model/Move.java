@@ -42,16 +42,14 @@ public class Move implements Comparable {
 	// FIXME:  Find some way of handling moves that involve more than one die, not necessarily in the move object, but somewhere
 	private final SimpleDie die;
 	private final Player player;
-	private final Turn turn;
 	private boolean pieceBumped = false;
 	private Date created = new Date();
 
-	public Move(Slot startSlot, Slot endSlot, SimpleDie die, Turn turn) {
+	public Move(Slot startSlot, Slot endSlot, SimpleDie die, Player player) {
 		this.startSlot = startSlot;
 		this.endSlot = endSlot;
 		this.die = die;
-		this.player = turn.getPlayer();
-		this.turn = turn;
+		this.player = player;
 	}
 
 	public Move (Move existingMove) {
@@ -60,13 +58,8 @@ public class Move implements Comparable {
 		// clone this so that changes to the original dice won't be reflected here
 		this.die = new SimpleDie(existingMove.die);
 		this.player = existingMove.getPlayer();
-		this.turn = existingMove.getTurn();
 	}
 	
-	public Turn getTurn() {
-		return this.turn;
-	}
-
 	public Player getPlayer() {
 		return player;
 	}
@@ -76,8 +69,8 @@ public class Move implements Comparable {
 		
 		Move otherMove = (Move) obj;
 		
-		if (this.startSlot.equals(otherMove.startSlot) && 
-			this.endSlot.equals(otherMove.endSlot) &&
+		if (((this.startSlot == null && otherMove.startSlot == null) || this.startSlot.equals(otherMove.startSlot)) && 
+			((this.endSlot == null && otherMove.endSlot == null) ||  this.endSlot.equals(otherMove.endSlot)) &&
 			this.die.equals(otherMove.die)) {
 			return true;
 		}
