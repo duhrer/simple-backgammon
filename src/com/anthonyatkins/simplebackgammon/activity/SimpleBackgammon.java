@@ -39,10 +39,13 @@ public class SimpleBackgammon extends Activity {
 	public static final String NAMESPACE = "android";
 	public static final int ACTIVITY_CODE = 111;
 	
+	public static final int EXIT_RETURN_CODE = -123;
+	
 	Match match;
 	Game game;
 	GameView gameView = null;
 	GameController gameController = null;
+	private SQLiteDatabase db;
 	
 	/** Called when the activity is first created. */
     @Override
@@ -65,9 +68,12 @@ public class SimpleBackgammon extends Activity {
 		if (savedInstanceState != null) { 
 			int gameId = savedInstanceState.getInt(Game._ID);
 			DbOpenHelper dbHelper = new DbOpenHelper(this);
-			SQLiteDatabase db = dbHelper.getReadableDatabase();
+			this.db = dbHelper.getReadableDatabase();
 			// Load the match for this game 
 			this.match = DbUtils.getMatchByGameId(gameId,db);
+			if (this.match == null) {
+				this.match = new Match(new Player(Constants.BLACK),new Player(Constants.WHITE),1);
+			}
 			// Find the game with the right id
 			this.game = match.getGameById(gameId);
 			if (this.game == null) {
@@ -87,15 +93,20 @@ public class SimpleBackgammon extends Activity {
     }
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		saveData(outState);
-		super.onSaveInstanceState(outState);
+	protected void onDestroy() {
+		super.onDestroy();
+		if (this.db != null) { db.close(); }
 	}
 
-	private void saveData(Bundle outState) {
-		// FIXME: save the game state to the database
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
 		
-		// FIXME: store the game ID in the out bundle, we'll try to restore that if we can.
+		// Save the match to the database
+		DbUtils.saveMatch(match, db);
+		
+		// Store the game ID in the out bundle, we'll try to restore that if we can.
+		outState.putLong(Game._ID, game.getId());
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -129,6 +140,7 @@ public class SimpleBackgammon extends Activity {
 			startActivityForResult(preferencesIntent,PreferencesActivity.EDIT_PREFERENCES);
 			break;
 		case MENU_EXIT:
+			setResult(EXIT_RETURN_CODE);
 			finish();
 			break;
 		}
