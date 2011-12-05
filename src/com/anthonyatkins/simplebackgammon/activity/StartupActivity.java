@@ -15,9 +15,18 @@ import com.anthonyatkins.simplebackgammon.db.DbUtils;
 import com.anthonyatkins.simplebackgammon.model.Game;
 
 public class StartupActivity extends Activity {
-
+	private boolean isGameRunning = false;
+	private static final String GAME_RUNNING = "gameRunning";	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		if (savedInstanceState != null) {
+			isGameRunning = savedInstanceState.getBoolean(GAME_RUNNING,false);
+		}
+
+		
     	requestWindowFeature(Window.FEATURE_NO_TITLE);
     	
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -27,7 +36,6 @@ public class StartupActivity extends Activity {
 					WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		}
 
-		super.onCreate(savedInstanceState);
 
 		// Create the database if it doesn't exist and look for an existing game
 		DbOpenHelper dbHelper = new DbOpenHelper(this);
@@ -42,9 +50,37 @@ public class StartupActivity extends Activity {
 		if (gameId != -1) { 
 			intent.putExtra(Game._ID, gameId); 
 		}
-		startActivityIfNeeded(intent,SimpleBackgammon.ACTIVITY_CODE);
 		
-		// FIXME:  We need to actually exit if someone calls an exit from a SimpleBackgammon activity.
+		if (!isGameRunning) { 
+			this.isGameRunning = true;
+			startActivityForResult(intent,SimpleBackgammon.ACTIVITY_CODE);
+		}
 	}
+
+	
+	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		
+		outState.putBoolean(GAME_RUNNING, isGameRunning);
+	}
+
+
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if (requestCode == SimpleBackgammon.ACTIVITY_CODE) {
+			if (resultCode == SimpleBackgammon.EXIT_RETURN_CODE) { 
+				finish(); 
+			}
+			
+			// FIXME:  Here's where we should check to see if the match is finished and prompt to start a new match, etc.
+		}
+	}
+	
+	
 
 }
