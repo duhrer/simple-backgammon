@@ -20,12 +20,12 @@ import com.anthonyatkins.simplebackgammon.model.Turn;
 import com.anthonyatkins.simplebackgammon.model.TurnMove;
 
 public class DbUtils {
-	public static int getLastUnfinishedGame(SQLiteDatabase db) {
+	public static long getLastUnfinishedGame(SQLiteDatabase db) {
 		if (db.isOpen()) {
-			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.FINISHED + "='false'",null,null,null,Game.CREATED + " desc","1");
+			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.FINISHED + "=0",null,null,null,Game.CREATED + " desc","1");
 			if (cursor.getCount() > 0) {
 				cursor.moveToFirst();
-				int id = cursor.getInt(cursor.getColumnIndex(Game._ID));
+				long id = cursor.getLong(cursor.getColumnIndex(Game._ID));
 				return id;
 			}
 		}
@@ -137,6 +137,9 @@ public class DbUtils {
 	}
 	
 	public static long saveMatch(Match match, SQLiteDatabase db) {
+		savePlayer(match.getBlackPlayer(),db);
+		savePlayer(match.getWhitePlayer(),db);
+		
 		ContentValues values = new ContentValues();
 		values.put(Match.BLACK_PLAYER, match.getBlackPlayer().getId());
 		values.put(Match.WHITE_PLAYER, match.getWhitePlayer().getId());
@@ -147,12 +150,16 @@ public class DbUtils {
 		if (match.getId() == -1) {
 			long matchId = db.insert(Match.TABLE_NAME, null, values);
 			match.setId(matchId);
-			return matchId;
 		}
 		else {
 			db.update(Match.TABLE_NAME, values, Match._ID + "=" + match.getId(), null);
-			return match.getId();
 		}
+		
+		for (Game game: match.getGames()) {
+			saveGame(game,db);
+		}
+		
+		return match.getId();
 	}
 	
 	public static int deleteMatch(Match match, SQLiteDatabase db) {
@@ -177,12 +184,18 @@ public class DbUtils {
 		if (turn.getId() == -1) {
 			long turnId = db.insert(Turn.TABLE_NAME, null, values);
 			turn.setId(turnId);
-			return turnId;
 		}
 		else {
 			db.update(Turn.TABLE_NAME, values, Turn._ID + "=" + turn.getId(), null);
-			return turn.getId();
 		}
+		
+		for (Move move : turn.getMoves()) {
+			if (move instanceof TurnMove) {
+				saveMove((TurnMove) move, db);
+			}
+		}
+		
+		return turn.getId();
 	}
 	
 	public static int deleteTurn(Turn turn, SQLiteDatabase db) {
@@ -258,13 +271,17 @@ public class DbUtils {
 			// This is a new game
 			long gameId = db.insert(Game.TABLE_NAME, null, values );
 			game.setId(gameId);
-			return gameId;
 		}
 		else {
 			// This is an existing game
 			db.update(Game.TABLE_NAME, values, Game._ID + "=" + game.getId(), null);
-			return game.getId();
 		}
+		
+		for (Turn turn : game.getGameLog()) {
+			long turnId = saveTurn(turn, db);
+		}
+		
+		return game.getId();
 	}
 
 	public static int deleteGame(Game game, SQLiteDatabase db) {
@@ -332,7 +349,7 @@ public class DbUtils {
 		return player;
 	}
 
-	public static Match getMatchByGameId(int gameId, SQLiteDatabase db) {
+	public static Match getMatchByGameId(long gameId, SQLiteDatabase db) {
 		
 		if (db.isOpen()) {
 			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game._ID + "=" + gameId,null,null,null,null,null);

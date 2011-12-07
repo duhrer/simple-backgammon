@@ -45,7 +45,7 @@ public class SimpleBackgammon extends Activity {
 	Game game;
 	GameView gameView = null;
 	GameController gameController = null;
-	private SQLiteDatabase db;
+	private DbOpenHelper dbHelper;
 	
 	/** Called when the activity is first created. */
     @Override
@@ -64,13 +64,17 @@ public class SimpleBackgammon extends Activity {
     	// FIXME:  read the active players from the intent bundle if they exist
     	
     	// FIXME: Read the first two active players from the database and make them Black and White in that order
+
+    	this.dbHelper = new DbOpenHelper(this);
     	
-		if (savedInstanceState != null) { 
-			int gameId = savedInstanceState.getInt(Game._ID);
-			DbOpenHelper dbHelper = new DbOpenHelper(this);
-			this.db = dbHelper.getReadableDatabase();
+		Bundle bundle = this.getIntent().getExtras();
+		if (bundle != null) {
+			long gameId = bundle.getLong(Game._ID);
+			SQLiteDatabase db = dbHelper.getReadableDatabase();
 			// Load the match for this game 
 			this.match = DbUtils.getMatchByGameId(gameId,db);
+			db.close();
+			
 			if (this.match == null) {
 				this.match = new Match(new Player(Constants.BLACK),new Player(Constants.WHITE),1);
 			}
@@ -92,21 +96,32 @@ public class SimpleBackgammon extends Activity {
 		setContentView(gameView);
     }
 
+    
+    
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (this.db != null) { db.close(); }
+		
+		saveGameToDb();
 	}
+
+
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		
-		// Save the match to the database
-		DbUtils.saveMatch(match, db);
+		saveGameToDb();
 		
 		// Store the game ID in the out bundle, we'll try to restore that if we can.
 		outState.putLong(Game._ID, game.getId());
+	}
+
+	private void saveGameToDb() {
+		// Save the match to the database
+		SQLiteDatabase writeableDb = dbHelper.getWritableDatabase();
+		DbUtils.saveMatch(match, writeableDb);
+		writeableDb.close();
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {

@@ -305,7 +305,8 @@ public class GameController {
 				gameView.getGame().switchPlayers();
 				
 				Player activePlayer = gameView.getGame().getActivePlayer();
-				new Turn(activePlayer,new SimpleDice(activePlayer.getColor()),gameView.getGame());
+				Turn currentTurn = new Turn(activePlayer,new SimpleDice(activePlayer.getColor()),gameView.getGame());
+				gameView.getGame().setCurrentTurn(currentTurn);
 				
 				setGameState(Game.ROLL);
 				break;
@@ -359,6 +360,8 @@ public class GameController {
 		}
 		
 		if (pieceToMove != null) {
+			gameView.getGame().getGameLog().add(gameView.getGame().getCurrentTurn());
+			
 			// take the piece out of its old location
 			getStartSlot().removePiece(pieceToMove);
 			sourceSlotView.invalidate();

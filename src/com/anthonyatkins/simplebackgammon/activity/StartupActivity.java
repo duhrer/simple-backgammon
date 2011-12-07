@@ -25,7 +25,6 @@ public class StartupActivity extends Activity {
 		if (savedInstanceState != null) {
 			isGameRunning = savedInstanceState.getBoolean(GAME_RUNNING,false);
 		}
-
 		
     	requestWindowFeature(Window.FEATURE_NO_TITLE);
     	
@@ -36,11 +35,10 @@ public class StartupActivity extends Activity {
 					WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		}
 
-
 		// Create the database if it doesn't exist and look for an existing game
 		DbOpenHelper dbHelper = new DbOpenHelper(this);
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
-		int gameId = DbUtils.getLastUnfinishedGame(db);
+		long gameId = DbUtils.getLastUnfinishedGame(db);
 		db.close();
 
 		// FIXME:  If there's no existing game in progress, prompt to create/pick players, create a match, etc.
@@ -48,7 +46,9 @@ public class StartupActivity extends Activity {
 		// Start the main activity (with an existing game ID if there is one
 		Intent intent = new Intent(this, SimpleBackgammon.class);
 		if (gameId != -1) { 
-			intent.putExtra(Game._ID, gameId); 
+			Bundle bundle = new Bundle();
+			bundle.putLong(Game._ID, gameId);
+			intent.putExtras(bundle);
 		}
 		
 		if (!isGameRunning) { 
@@ -71,8 +71,9 @@ public class StartupActivity extends Activity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-
 		if (requestCode == SimpleBackgammon.ACTIVITY_CODE) {
+			this.isGameRunning = false;
+			
 			if (resultCode == SimpleBackgammon.EXIT_RETURN_CODE) { 
 				finish(); 
 			}
