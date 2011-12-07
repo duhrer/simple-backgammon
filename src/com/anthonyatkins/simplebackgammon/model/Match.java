@@ -85,7 +85,7 @@ public class Match {
 		games.addAll(gamesByMatch);
 	}
 
-	public Game getGameById(int gameId) {
+	public Game getGameById(long gameId) {
 		for (Game game : games) {
 			if (game.getId() == gameId) {
 				return game;

@@ -79,8 +79,8 @@ public class Game {
 		
 		this.gameLog = new GameLog();
 		
-		this.whitePlayer = (new Player(Constants.WHITE)); 
-		this.blackPlayer = (new Player(Constants.BLACK)); 
+		this.blackPlayer = (match.getBlackPlayer()); 
+		this.whitePlayer = (match.getWhitePlayer()); 
 
 		this.board = (new Board(this));
 	}
@@ -89,8 +89,8 @@ public class Game {
 	public Game(Game baselineGame) {
 		this.match = baselineGame.getMatch();
 		match.addGame(this);
-		this.blackPlayer = (new Player(baselineGame.getBlackPlayer()));
-		this.whitePlayer  = (new Player(baselineGame.getWhitePlayer()));
+		this.blackPlayer = (match.getBlackPlayer()); 
+		this.whitePlayer = (match.getWhitePlayer()); 
 		this.board = (new Board(baselineGame.getBoard(), this));
 		
 		if (baselineGame.getActivePlayer() == null ) {
