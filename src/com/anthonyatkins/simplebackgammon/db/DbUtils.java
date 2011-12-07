@@ -295,7 +295,7 @@ public class DbUtils {
 	
 	public static void loadMatchGames(Match match, SQLiteDatabase db) {
 		if (db.isOpen()) {
-			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.MATCH+ "=" + match.getId(),null,null,null,"order by " + Game.CREATED,null);
+			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.MATCH+ "=" + match.getId(),null,null,null,Game.CREATED + " desc",null);
 			if (cursor.getCount() > 0) {
 				cursor.moveToPosition(-1);
 				while (cursor.moveToNext()) {
@@ -309,7 +309,7 @@ public class DbUtils {
 		List<Turn> turns = new ArrayList<Turn>();
 
 		if (db.isOpen()) {
-			Cursor cursor = db.query(Turn.TABLE_NAME, Turn.COLUMNS,Turn.GAME + "=" + game.getId(),null,null,null,"order by " + Move.CREATED,null);
+			Cursor cursor = db.query(Turn.TABLE_NAME, Turn.COLUMNS,Turn.GAME + "=" + game.getId(),null,null,null,Move.CREATED + " desc",null);
 			if (cursor.getCount() > 0) {
 				cursor.moveToPosition(-1);
 				while (cursor.moveToNext()) {
