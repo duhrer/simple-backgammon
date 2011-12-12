@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.view.View;
 
 import com.anthonyatkins.simplebackgammon.Constants;
-import com.anthonyatkins.simplebackgammon.activity.SimpleBackgammon;
 import com.anthonyatkins.simplebackgammon.model.Dialog;
 
 public class SinglePlayerDialogView extends View{
@@ -25,7 +24,7 @@ public class SinglePlayerDialogView extends View{
 
 	@Override
 	protected void onDraw(Canvas canvas) {
-		if (gameView.getGame().getActivePlayer().getColor() == Constants.BLACK) {
+		if (gameView.getGame().getCurrentTurn().getColor() == Constants.BLACK) {
 			canvas.rotate(180, getMeasuredWidth()/2, getMeasuredHeight()/2);
 		}
 

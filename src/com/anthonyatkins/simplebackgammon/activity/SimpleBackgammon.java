@@ -27,7 +27,6 @@ import com.anthonyatkins.simplebackgammon.view.GameView;
 
 public class SimpleBackgammon extends Activity {
 	public final static String BOARD_STATE = "BoardState";
-	private static final String ACTIVE_PLAYER = "ActivePlayer";
 	public final static String GAME_STATE = "GameState";
 	public final static String ACTIVE_PLAYER_DICE_STATE = "ActivePlayerDiceState";
 	public final static String INACTIVE_PLAYER_DICE_STATE = "InactivePlayerDiceState";
@@ -61,13 +60,14 @@ public class SimpleBackgammon extends Activity {
 
     	super.onCreate(savedInstanceState);
     	    	
-    	// FIXME:  read the active players from the intent bundle if they exist
-    	
     	// FIXME: Read the first two active players from the database and make them Black and White in that order
 
     	this.dbHelper = new DbOpenHelper(this);
     	
-		Bundle bundle = this.getIntent().getExtras();
+    	Player blackPlayer = new Player("Black Player");
+    	Player whitePlayer = new Player("White Player");
+    	
+    	Bundle bundle = this.getIntent().getExtras();
 		if (bundle != null) {
 			long gameId = bundle.getLong(Game._ID);
 			SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -76,17 +76,23 @@ public class SimpleBackgammon extends Activity {
 			db.close();
 			
 			if (this.match == null) {
-				this.match = new Match(new Player(Constants.BLACK),new Player(Constants.WHITE),1);
+				this.match = new Match(blackPlayer,whitePlayer,1);
 			}
 			// Find the game with the right id
 			this.game = match.getGameById(gameId);
 			if (this.game == null) {
-				this.game = new Game(match);
+				
+				int startColor = bundle.getInt(StartupActivity.START_COLOR_KEY,Constants.BLACK);
+				
+				this.game = new Game(match,startColor);
 			}
 		}
 		else { 
-			this.match = new Match(new Player(Constants.BLACK),new Player(Constants.WHITE),1);
-			this.game = new Game(match);
+			// This should never happen, if you start getting a lot of games with black as the default, that's why... :)
+
+			// FIXME:  throw an error and die if the parent activity didn't tell us which player is going first
+			this.match = new Match(blackPlayer,whitePlayer,1);
+			this.game = new Game(match,Constants.BLACK);
 		}
 		
 		this.gameView = new GameView(this,this.game);
@@ -144,6 +150,7 @@ public class SimpleBackgammon extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case MENU_NEW_GAME:
+			// FIXME:  The old game needs to be forced to conceed and we need to kick the user back out to the start screen.
 			gameController.setGameState(Game.STARTUP); 
 			break;
 		case MENU_HELP:
@@ -193,7 +200,7 @@ public class SimpleBackgammon extends Activity {
 				gameController.setGameState(Game.MOVE_PICK_SOURCE);
 				return true;
 			
-			case Game.SWITCH_PLAYER:
+			case Game.NEW_TURN:
 				gameController.undoMove();
 				gameController.setGameState(Game.MOVE_PICK_SOURCE);
 				return true;

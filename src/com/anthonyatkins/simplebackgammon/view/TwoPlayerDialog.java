@@ -10,7 +10,7 @@ import com.anthonyatkins.simplebackgammon.controller.GameController;
 import com.anthonyatkins.simplebackgammon.model.Game;
 
 public class TwoPlayerDialog extends Dialog {
-	private int nextState = Game.PICK_FIRST;
+	private int nextState = Game.STARTUP;
 	private GameController gameController;
 	private TwoPlayerDialogView dialogView;
 	

@@ -11,8 +11,7 @@ public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
 	public SimpleDice(int color) {
 		this.color = color;
 		
-		this.add(new SimpleDie(0,color));
-		this.add(new SimpleDie(0,color));
+		roll();
 	}
 
 	/**
@@ -35,7 +34,7 @@ public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
 		this.color = color;
 	}
 	
-	public void roll() {
+	protected void roll() {
 		this.clear();
 		SimpleDie die1 = new SimpleDie(this.color);
 		die1.roll();
@@ -50,18 +49,6 @@ public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
 			this.add(new SimpleDie(this.get(0).getValue(), this.color));
 		}
 	}
-	
-	public void roll(int d1Value, int d2Value) {
-		this.clear();
-		this.add(new SimpleDie(d1Value,color));
-		this.add(new SimpleDie(d2Value,color));
-		
-		if (d1Value == d2Value && d1Value != 0) {
-			this.add(new SimpleDie(this.get(0).getValue(), this.color));
-			this.add(new SimpleDie(this.get(0).getValue(), this.color));
-		}
-	}
-	
 
 	/**
 	 * Return only the unique numbers in our dice (used for move lookups, etc.)

@@ -1,28 +1,18 @@
 package com.anthonyatkins.simplebackgammon.view;
 
 import android.content.Context;
-import android.util.AttributeSet;
 import android.view.ViewGroup;
 
-import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.Pit;
+import com.anthonyatkins.simplebackgammon.model.SimpleDice;
 
 public class PitView extends ViewGroup{
 	private SlotBankView topSlotBankView;
 	private SlotBankView bottomSlotBankView; 
 	private DiceView diceView;
-	private Pit pit;
-	private Palette theme;
-	private Game game;
 	
-	public PitView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-	}
-
-	public PitView(Context context, Pit pit, Palette theme) {
+	public PitView(Context context, Pit pit, int color, Palette theme) {
 		super(context);
-		this.pit = pit;
-		this.theme = theme;
 		
 		setClipChildren(false);
 		setClipToPadding(false);
@@ -30,7 +20,7 @@ public class PitView extends ViewGroup{
 		addView(getTopSlotBankView());
 		setBottomSlotBankView(new SlotBankView(context,pit.bottomSlotBank));
 		addView(getBottomSlotBankView());
-		setDiceView(new DiceView(context, pit.getDice(), pit.getGame(), theme));
+		setDiceView(new DiceView(context, new SimpleDice(color), pit.getGame(), color, theme));
 		addView(getDiceView());
 		
 		this.setBackgroundColor(theme.pitPaint.getColor());

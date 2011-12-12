@@ -27,7 +27,7 @@ public class SimpleDie implements Comparable{
 	}
 	
 	public void setUsed() {
-		used = true;
+		this.used = true;
 	}
 	public void setUsed(boolean used) {
 		this.used = used;

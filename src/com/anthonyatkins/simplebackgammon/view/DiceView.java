@@ -7,30 +7,39 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.anthonyatkins.simplebackgammon.model.Game;
+import com.anthonyatkins.simplebackgammon.model.GameDie;
 import com.anthonyatkins.simplebackgammon.model.SimpleDice;
 import com.anthonyatkins.simplebackgammon.model.SimpleDie;
 
 public class DiceView extends ViewGroup{
-	private SimpleDice dice;
 	private final Context context; 
 	private Palette theme;
 	private final Game game;
+	private int color;
 	
-	public DiceView(Context context, SimpleDice dice, Game game, Palette theme) {
+	public DiceView(Context context, SimpleDice dice, Game game,  int color, Palette theme) {
 		super(context);
 		this.context = context;
-		this.dice = dice;
 		this.theme = theme;
 		this.game = game;
+		this.color = color;
 		
-		// Add child views for all the dice in the set
-		Iterator<SimpleDie> dieIterator = dice.iterator();
-		while (dieIterator.hasNext()) {
-			SimpleDie die = dieIterator.next();
-			addView(new DieView(context, die, game, theme));
-		}
+		addDieViews();
 	}	
 	
+	public void addDieViews() {
+		removeAllViews();
+		
+		if (game.getCurrentTurn().getColor() == color) {
+			// Add child views for all the dice in the set
+			Iterator<SimpleDie> dieIterator = game.getCurrentTurn().getDice().iterator();
+			while (dieIterator.hasNext()) {
+				GameDie die = (GameDie) dieIterator.next();
+				addView(new DieView(context, die, game, color, theme));
+			}
+		}
+	}
+
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		int dieSide = widthMeasureSpec / (getChildCount()+1);
@@ -66,29 +75,10 @@ public class DiceView extends ViewGroup{
 		}
 	}
 	
-	public void roll() {
-		removeAllViews();
-		dice.roll();
-		Iterator<SimpleDie> dieIterator = dice.iterator();
-		while (dieIterator.hasNext()) {
-			SimpleDie die = dieIterator.next();
-			addView(new DieView(context,die,game, theme));
-		}
-	}
-
-	
 	public void invalidate() {
 		for (int a=0; a<getChildCount();a++) {
 			getChildAt(a).invalidate();
 		}
 		super.invalidate();
-	}
-
-	public void setVisibility(int visibility) {
-		for (int a=0; a<getChildCount();a++) {
-			getChildAt(a).setVisibility(visibility);
-		}
-
-		super.setVisibility(visibility);
 	}
 }

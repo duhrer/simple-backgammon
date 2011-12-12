@@ -17,14 +17,9 @@ public class Slot implements Comparable<Slot>{
 		return pieces;
 	}
 
-	public Moves getMoves() {
-		return moves;
-	}
-
 	private boolean isSourceSlot;
 	private boolean isDestSlot;
 	private final Game game;
-	private Moves moves = new Moves();
 	
 	public Slot(int direction, int position, Game game) {
 		this.direction = direction;
@@ -134,5 +129,12 @@ public class Slot implements Comparable<Slot>{
 		if (position != other.position)
 			return false;
 		return true;
+	}
+
+	public Moves getMoves() {
+		Moves moves = new Moves();
+		moves.addAll(game.getCurrentTurn().getPotentialMoves().getMovesForStartSlot(this));
+		moves.addAll(game.getCurrentTurn().getPotentialMoves().getMovesForEndSlot(this));
+		return moves;
 	}
 }

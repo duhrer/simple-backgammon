@@ -3,7 +3,9 @@ package com.anthonyatkins.simplebackgammon.model;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class Moves extends ArrayList<Move> implements Comparable {
+public class Moves extends ArrayList<Move> implements Comparable<Move> {
+	private static final long serialVersionUID = -7094672094325795661L;
+
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
@@ -35,9 +37,27 @@ public class Moves extends ArrayList<Move> implements Comparable {
 		return true;
 	}
 
-	public int compareTo(Object another) {
+	public int compareTo(Move move) {
 		return 0;
 	}
 	
+	public Moves getMovesForStartSlot(Slot slot) {
+		Moves movesForSlot = new Moves();
+		
+		for (Move move : this) {
+			if (move.getStartSlot().equals(slot)) movesForSlot.add(move);
+		}
+		
+		return movesForSlot;
+	}
 	
+	public Moves getMovesForEndSlot(Slot slot) {
+		Moves movesForSlot = new Moves();
+		
+		for (Move move : this) {
+			if (move.getEndSlot().equals(slot)) movesForSlot.add(move);
+		}
+		
+		return movesForSlot;
+	}
 }

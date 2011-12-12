@@ -9,7 +9,7 @@ import com.anthonyatkins.simplebackgammon.controller.GameController;
 import com.anthonyatkins.simplebackgammon.model.Game;
 
 public class SinglePlayerContinueDialog extends android.app.Dialog {
-	private int nextState = Game.PICK_FIRST;
+	private int nextState = Game.STARTUP;
 	private GameController gameController;
 	private SinglePlayerDialogView dialogView;
 	private GameView gameView;
