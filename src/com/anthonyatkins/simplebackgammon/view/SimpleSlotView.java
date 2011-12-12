@@ -11,6 +11,7 @@ import android.view.View;
 import com.anthonyatkins.simplebackgammon.Constants;
 import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.Move;
+import com.anthonyatkins.simplebackgammon.model.Moves;
 import com.anthonyatkins.simplebackgammon.model.SimpleDie;
 import com.anthonyatkins.simplebackgammon.model.Slot;
 
@@ -52,36 +53,34 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 			slotPaint = theme.evenSlotPaint;
 		}
 		c.drawPath(stalagmite, slotPaint);
-		if (getParent() instanceof View && ((View) getParent()).isClickable()){  
+
+		Moves potentialMoves = slot.getGame().getCurrentTurn().getPotentialMoves();
+		if (potentialMoves != null && potentialMoves.size() > 0) {
 			switch (slot.getGame().getState()) {
 				case Game.MOVE_PICK_SOURCE:
-					// This slot is clickable because it's the starting point for a move
-					c.drawPath(stalagmite, theme.slotHighlightPaint); 
+					// If the slot is the start point for potential moves, highlight it
+					if (potentialMoves.getMovesForStartSlot(slot).size() > 0) c.drawPath(stalagmite, theme.slotHighlightPaint); 
 					break;
 				case Game.MOVE_PICK_DEST:
-					// This slot is clickable because someone can move a piece here
-					// we will use images for this shortly, but draw a red dot for now in the right place
+					// If we're not the start point, check to see if we're the end point.
 					if (!isSelectedSlot()) {
-						int potentialMovePosition = 5;
-						if (slot.getPieces().size() < 5) {
-							potentialMovePosition = slot.getPieces().size();
-						}
-						int centerY = (int) (getMeasuredHeight() - ((pieceHeight + margin) * potentialMovePosition) - pieceRadius);
-						
-						if (slot.getMoves() != null && slot.getMoves().size() > 0) {
+						Moves movesForEndSlot = potentialMoves.getMovesForEndSlot(slot);
+						if (movesForEndSlot.size() > 0 ) {
+							int potentialMovePosition = 5;
+							if (slot.getPieces().size() < 5) {
+								potentialMovePosition = slot.getPieces().size();
+							}
+							int centerY = (int) (getMeasuredHeight() - ((pieceHeight + margin) * potentialMovePosition) - pieceRadius);
+							
 							Move incomingMove = null;
-							for (Move move: slot.getMoves()) {
+							for (Move move: movesForEndSlot) {
 								if (isSelectedSlot(move.getStartSlot())) {
 									incomingMove = move;
 									break;
 								}
 							}
 							
-							// TODO:  display an image instead of a graphic
 							if (incomingMove != null) {
-//								c.drawCircle(centerX, centerY, pieceRadius, pieceMultiplierPaint);
-//								c.drawText(String.valueOf(incomingMove.die.getValue()), centerX, centerY + textHeight/4, pieceMultiplierPaint);
-								
 								updateImage(incomingMove.getDie());
 								if (imageResource != 0) {
 									c.drawBitmap(BitmapFactory.decodeResource(getResources(),imageResource), null, new Rect(centerX-pieceRadius,centerY-pieceRadius,centerX+pieceRadius,centerY+pieceRadius), theme.potentialMovePaint);
@@ -139,7 +138,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 	}
 	
 	protected boolean isSelectedSlot(Slot slot) {
-		return slot.getGame().getStartSlot() != null && slot.equals(slot.getGame().getStartSlot());
+		return slot.getGame().getCurrentTurn().getStartSlot() != null && slot.equals(slot.getGame().getCurrentTurn().getStartSlot());
 	}
 
 	public int compareTo(SimpleSlotView anotherSlotView) {
@@ -147,7 +146,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 	}
 	
 	private void updateImage(SimpleDie die) {
-		if (this.slot.getGame().getActivePlayer().getColor() == Constants.BLACK) {
+		if (this.slot.getGame().getCurrentTurn().getColor() == Constants.BLACK) {
 			switch (die.getValue()) {
 				case 1:
 					setImageResource(com.anthonyatkins.simplebackgammon.R.drawable.bc1);

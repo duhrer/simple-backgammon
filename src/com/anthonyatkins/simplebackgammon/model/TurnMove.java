@@ -15,6 +15,11 @@ public class TurnMove extends Move {
 		turn.getMoves().add(this);
 	}
 	
+	public TurnMove(Move move, Turn turn) {
+		super(move.getStartSlot(),move.getEndSlot(),move.getDie(),turn.getPlayer());
+		this.turn = turn;
+	}
+
 	public Turn getTurn() {
 		return this.turn;
 	}

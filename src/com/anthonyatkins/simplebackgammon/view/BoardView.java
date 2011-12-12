@@ -7,6 +7,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 
+import com.anthonyatkins.simplebackgammon.Constants;
 import com.anthonyatkins.simplebackgammon.model.Board;
 import com.anthonyatkins.simplebackgammon.model.Slot;
 
@@ -32,11 +33,11 @@ public class BoardView extends ViewGroup{
 		this.board = board;
 		this.theme = theme;
 		
-		leftPitView = new PitView(context, board.getLeftPit(), theme);
+		leftPitView = new PitView(context, board.getLeftPit(), Constants.WHITE, theme);
 		addView(leftPitView);
 		this.setWhiteDiceView(leftPitView.getDiceView());
 		
-		rightPitView = new PitView(context, board.getRightPit(), theme);
+		rightPitView = new PitView(context, board.getRightPit(), Constants.BLACK, theme);
 		addView(rightPitView);
 		this.setBlackDiceView(rightPitView.getDiceView());
 

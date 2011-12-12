@@ -17,7 +17,7 @@ public class RotateableButton extends Button {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		canvas.save();
-		if (gameView.getGame().getActivePlayer().getColor() == Constants.BLACK) {
+		if (gameView.getGame().getCurrentTurn().getColor() == Constants.BLACK) {
 			canvas.rotate(180, getMeasuredWidth()/2, getMeasuredHeight()/2);
 		}
 		super.onDraw(canvas);

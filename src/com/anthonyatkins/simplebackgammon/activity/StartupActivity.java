@@ -16,7 +16,8 @@ import com.anthonyatkins.simplebackgammon.model.Game;
 
 public class StartupActivity extends Activity {
 	private boolean isGameRunning = false;
-	private static final String GAME_RUNNING = "gameRunning";	
+	private static final String GAME_RUNNING = "gameRunning";
+	public static final String START_COLOR_KEY = "startColor";	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +54,8 @@ public class StartupActivity extends Activity {
 		
 		if (!isGameRunning) { 
 			this.isGameRunning = true;
+			
+			// FIXME:  pick the starting player and pass that along to the starting activity
 			startActivityForResult(intent,SimpleBackgammon.ACTIVITY_CODE);
 		}
 	}

@@ -35,11 +35,9 @@ public class DbOpenHelper extends SQLiteOpenHelper {
 		db.execSQL(Player.TABLE_CREATE);
 		
 		// Create two sample players
-		Player player1 = new Player(Constants.BLACK);
-		player1.setName("Player 1");
+		Player player1 = new Player("Player 1");
 		DbUtils.savePlayer(player1, db);
-		Player player2 = new Player(Constants.WHITE);
-		player2.setName("Player 2");
+		Player player2 = new Player("Player 2");
 		DbUtils.savePlayer(player2, db);
 		
 		db.execSQL(Match.TABLE_CREATE);

@@ -1,28 +1,19 @@
 package com.anthonyatkins.simplebackgammon.model;
 
 public class GameDie extends SimpleDie {
-	private Player player;
-	
-	private boolean used = false;
+	private final Turn turn;
 
-	public GameDie(int color, Player player) {
+	public GameDie(int color, Turn turn) {
 		super(color);
-		this.player = player;
+		this.turn = turn;
 	}
 	
-	public GameDie(int value, int color, Player player) {
+	public GameDie(int value, int color, Turn turn) {
 		super(value,color);
-		this.player = player;
+		this.turn = turn;
 	}
 
-	public GameDie(GameDie existingDie) {
-		super(existingDie.getValue(),existingDie.getColor());
-	}
-	
 	public boolean hasMoves() {
-		for (Move move: player.getMoves()) {
-			if (move.getDie().equals(this)) return true;
-		}
-		return false;
+		return turn.movesLeftForDie(this);
 	}
 }

@@ -34,7 +34,7 @@ public class DbUtils {
 	}
 	
 	public static Game getGameById(Match match, long gameId, SQLiteDatabase db) {
-		Game game = new Game(match);
+		Game game = new Game(match,0);
 
 		if (db.isOpen()) {
 			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game._ID + "=" + gameId,null,null,null,null,null);
@@ -48,39 +48,41 @@ public class DbUtils {
 		return game;
 	}
 
-	public static void loadGameFromCursor(SQLiteDatabase db, Game game,
-			Cursor cursor) {
+	public static void loadGameFromCursor(SQLiteDatabase db, Game game, Cursor cursor) {
 		int points = cursor.getInt(cursor.getColumnIndex(Game.POINTS));
 		game.setPoints(points);
 		
 		boolean finished = cursor.getInt(cursor.getColumnIndex(Game.FINISHED)) == 1 ? true : false;
 		game.setFinished(finished);
+		
+		int startingColor = cursor.getInt(cursor.getColumnIndex(Game.STARTING_COLOR));
+		game.setStartingColor(startingColor);
 
 		// get the list of turns 
 		List<Turn> turns = getTurnsByGame(game,db);
 		
 		// get the list of moves for each turn and replay each move in order
-		Player activePlayer = null;
 		if (turns != null && turns.size() > 0) {
 			for (Turn turn : turns) {
-				activePlayer = turn.getPlayer();
 				List<Move> moves = getMovesByTurn(turn, game, db);
 				if (moves != null) {
 					for (Move move: moves) {
 						game.makeMove(move);
 					}
 				}
-				
-				game.getGameLog().add(turn);
 			}
-			game.setState(Game.MOVE_PICK_SOURCE);
 		}
 		else {
-			game.setState(Game.PICK_FIRST);
+			game.newTurn(startingColor == Constants.BLACK ? game.getBlackPlayer() : game.getWhitePlayer());
 		}
 		
-		// set the active player based on the last turn
-		game.setActivePlayer(activePlayer);
+		
+		if (finished) { 
+			game.setState(Game.GAME_OVER);
+		}
+		else {
+			game.setState(Game.MOVE_PICK_SOURCE);
+		}
 	}
 	
 	public static Match getMatchById(long matchId, SQLiteDatabase db) {
@@ -91,11 +93,12 @@ public class DbUtils {
 				int blackPlayerId = cursor.getInt(cursor.getColumnIndex(Match.BLACK_PLAYER));
 				Player blackPlayer = getPlayerById(blackPlayerId, Constants.BLACK, db);
 				int whitePlayerId = cursor.getInt(cursor.getColumnIndex(Match.WHITE_PLAYER));
-				Player whitePlayer = getPlayerById(whitePlayerId, Constants.BLACK, db);
+				Player whitePlayer = getPlayerById(whitePlayerId, Constants.WHITE, db);
 
 				int pointsToFinish = cursor.getInt(cursor.getColumnIndex(Match.POINTS_TO_WIN));
 
 				Match match = new Match(blackPlayer,whitePlayer,pointsToFinish);
+				match.setId(matchId);
 				
 				boolean finished = cursor.getInt(cursor.getColumnIndex(Match.FINISHED)) == 1 ? true : false;
 				match.setFinished(finished);
@@ -128,7 +131,6 @@ public class DbUtils {
 					int createdTimestamp = cursor.getInt(cursor.getColumnIndex(Move.CREATED));
 					Date created = new Date((long) createdTimestamp);
 					move.setCreated(created);
-					moves.add(move);
 				}
 			}
 		}
@@ -278,7 +280,7 @@ public class DbUtils {
 		}
 		
 		for (Turn turn : game.getGameLog()) {
-			long turnId = saveTurn(turn, db);
+			saveTurn(turn, db);
 		}
 		
 		return game.getId();
@@ -299,7 +301,7 @@ public class DbUtils {
 			if (cursor.getCount() > 0) {
 				cursor.moveToPosition(-1);
 				while (cursor.moveToNext()) {
-					loadGameFromCursor(db, new Game(match), cursor);
+					loadGameFromCursor(db, new Game(match,0), cursor);
 				}
 			}
 		}
@@ -322,10 +324,7 @@ public class DbUtils {
 					SimpleDice dice = new SimpleDice(color);
 					dice.add(new SimpleDie(d1Value,color));
 					dice.add(new SimpleDie(d2Value,color));
-					Turn turn = new Turn(player, dice, game);
-					
-					List<Move> moves = getMovesByTurn(turn, game, db);
-					turn.addMoves(moves);
+					new Turn(player, game, color);
 				}
 			}
 		}
@@ -335,7 +334,7 @@ public class DbUtils {
 	}
 
 	public static Player getPlayerById(long playerId, int color, SQLiteDatabase db) {
-		Player player = new Player(color);
+		Player player = new Player();
 
 		if (db.isOpen()) {
 			Cursor cursor = db.query(Player.TABLE_NAME, Player.COLUMNS,Player._ID + "=" + playerId,null,null,null,null,null);

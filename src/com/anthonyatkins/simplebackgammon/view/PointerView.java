@@ -92,7 +92,7 @@ public class PointerView extends View {
 	}
 	
 	protected boolean isSelectedSlot(Slot slot) {
-		Slot selectedSlot = slot.getGame().getStartSlot();
+		Slot selectedSlot = slot.getGame().getCurrentTurn().getStartSlot();
 		return selectedSlot != null && slot.equals(selectedSlot);
 	}
 }

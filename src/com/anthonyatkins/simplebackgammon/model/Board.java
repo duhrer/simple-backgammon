@@ -10,8 +10,8 @@ import android.util.Log;
 import com.anthonyatkins.simplebackgammon.Constants;
 
 public class Board {
-	private Pieces whitePieces;
-	private Pieces blackPieces;
+	private Pieces whitePieces = new Pieces();
+	private Pieces blackPieces = new Pieces();
 
 	Context context; 
 	
@@ -44,10 +44,8 @@ public class Board {
 		setBar(new Bar(game));  // the holding slot for "bumped" pieces
 		setWhiteOut(new Dugout(-1, Constants.WHITE,game)); // the holding slot for white pieces that have made it home
 		setBlackOut(new Dugout(24, Constants.BLACK,game)); // ditto for black pieces
-		setLeftPit(new Pit(game.getWhitePlayer().getDice(),game));
-		setRightPit(new Pit(game.getBlackPlayer().getDice(), game));
-		setWhitePieces(game.getWhitePlayer().getPieces());
-		setBlackPieces(game.getBlackPlayer().getPieces());
+		setLeftPit(new Pit(game));
+		setRightPit(new Pit(game));
 		
 		for (int a=0; a<6; a++) {
 			getPlaySlots().add(new Slot(Slot.UP,a,game));

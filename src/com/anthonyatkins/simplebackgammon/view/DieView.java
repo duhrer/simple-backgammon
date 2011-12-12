@@ -15,11 +15,12 @@ import com.anthonyatkins.simplebackgammon.model.SimpleDie;
 public class DieView extends View {
 	private final SimpleDie die;
 	private final Game game;
+	
 	private int imageResource;
 	private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private Palette theme = null;
 	
-	public DieView(Context context, SimpleDie die, Game game, Palette theme) {
+	public DieView(Context context, SimpleDie die, Game game, int color, Palette theme) {
 		super(context);
 		this.die = die;
 		this.game = game;
@@ -97,11 +98,11 @@ public class DieView extends View {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		int activePlayerColor = 0;
-		if (game.getActivePlayer() != null) {
-			activePlayerColor = game.getActivePlayer().getColor();
-		}
-		if (game.getState() != Game.PICK_FIRST && activePlayerColor != die.getColor()) {
+		activePlayerColor = game.getCurrentTurn().getColor();
+		
+		if (activePlayerColor != die.getColor()) {
 			this.setVisibility(INVISIBLE);
+			return;
 		}
 		else {
 			setVisibility(VISIBLE);
@@ -112,15 +113,13 @@ public class DieView extends View {
 
 		canvas.drawBitmap(BitmapFactory.decodeResource(getResources(),imageResource), null, new Rect(0,0,getMeasuredWidth(),getMeasuredHeight()), paint);
 
-		if (game != null) {
-			// Draw a simple "prohibit" across a die that has no moves
-			if (!((GameDie) die).isUsed() && !((GameDie) die).hasMoves() && game.getState() != Game.PICK_FIRST && game.getState() != Game.GAME_OVER) {
+		// Draw a simple "prohibit" across a die that has no moves
+		if (die instanceof GameDie) {
+			if (!((GameDie) die).isUsed() && !((GameDie) die).hasMoves() && game.getState() != Game.GAME_OVER) {
 				canvas.drawLine(0, 0, getMeasuredWidth(), getMeasuredHeight(), theme.dieBlockedPaint);
 			}
 		}
-		
 	}
-
 
 	public void setDieValue(int value) {
 		die.setValue(value);
@@ -134,13 +133,7 @@ public class DieView extends View {
 		invalidate();
 	}
 
-
-	public int getImageResource() {
-		return imageResource;
-	}
-
-
-	public void setImageResource(int imageResource) {
+	private void setImageResource(int imageResource) {
 		this.imageResource = imageResource;
 	}
 }

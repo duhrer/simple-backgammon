@@ -1,6 +1,7 @@
 package com.anthonyatkins.simplebackgammon.model;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -39,16 +40,20 @@ public class Turn {
 	
 	private long id = -1;
 	private Moves moves = new Moves();
+	private Moves potentialMoves = new Moves();
+	
 	private final Player player;
 	private final Game game;
-	private final SimpleDice dice;
+	private final GameDice dice;
 	private final int color;
 	private final Date created = new Date();
+	
+	private Slot startSlot;
 
-	public Turn(Player player, SimpleDice dice2, Game game) {
+	public Turn(Player player, Game game, int color) {
 		this.player = player;
-		this.color = player.getColor();
-		this.dice = new SimpleDice(dice2);
+		this.color = color;
+		this.dice = new GameDice(color,this);
 		this.game = game;
 		game.getGameLog().add(this);
 	}
@@ -56,9 +61,9 @@ public class Turn {
 	public Turn(Turn existingTurn, Game game) {
 		this.player = existingTurn.getPlayer();
 		this.game = game;
+		this.color = existingTurn.getColor();
 		game.getGameLog().add(this);
-		this.color = player.getColor();
-		this.dice = new SimpleDice(existingTurn.dice);
+		this.dice = new GameDice(existingTurn.dice,this);
 		for (Move move: existingTurn.moves) {
 			moves.add(new Move(move));
 		}
@@ -67,9 +72,9 @@ public class Turn {
 	public Turn(Turn existingTurn) {
 		this.player = existingTurn.getPlayer();
 		this.game = existingTurn.getGame();
+		this.color = existingTurn.getColor();
 		game.getGameLog().add(this);
-		this.color = player.getColor();
-		this.dice = new SimpleDice(existingTurn.dice);
+		this.dice = new GameDice(existingTurn.dice,this);
 		for (Move move: existingTurn.moves) {
 			moves.add(new Move(move));
 		}
@@ -140,11 +145,136 @@ public class Turn {
 		return player;
 	}
 
-	public SimpleDice getDice() {
+	public GameDice getDice() {
 		return dice;
 	}
 
 	public int getColor() {
 		return color;
+	}
+
+	public boolean movesLeft() {
+		return potentialMoves.size() > 0;
+	}
+
+	public void setSelectedMove(Move potentialMove) {
+		
+	}
+	
+	public Slot getStartSlot() {
+		return startSlot;
+	}
+
+	public void setStartSlot(Slot startSlot) {
+		this.startSlot = startSlot;
+	}
+
+	public void clearStartSlot() {
+		this.startSlot = null;
+	}
+
+	public void pickMove(Move potentialMove) {
+		moves.add(potentialMove);
+		makeMove(potentialMove);
+		clearStartSlot();
+		game.findAllPotentialMoves();
+	}
+
+	public Moves getPotentialMoves() {
+		return this.potentialMoves;
+	}
+	
+	private void makeMove(Move move) {
+		// This shouldn't be needed but just in case.
+		setStartSlot(move.getStartSlot());
+		Piece pieceToMove = null;
+		if (move.getStartSlot().equals(game.getBoard().getBar())) {
+			// get the first piece of my color and move it to the destination, then invalidate the bar and the destination
+			Iterator<Piece> pieceIterator = game.getBoard().getBar().getPieces().iterator();
+			while (pieceIterator.hasNext()) {
+				Piece thisPiece = pieceIterator.next();	
+				if (thisPiece.color == game.getCurrentTurn().getColor()) {
+					pieceToMove = thisPiece;
+					break;
+				}
+			}
+		}
+		else {
+			pieceToMove = move.getStartSlot().getPieces().get(0);
+		}
+		
+		if (pieceToMove != null) {
+			// take the piece out of its old location
+			move.getStartSlot().removePiece(pieceToMove);
+
+			// Flag the die associated with this move as used
+			move.getDie().setUsed();
+			new TurnMove(move, game.getCurrentTurn());
+
+			
+			// add the piece to the new location
+			if (move.getEndSlot().equals(game.getBoard().getBlackOut())) {
+				game.getBoard().getBlackOut().addPiece(pieceToMove);
+			}
+			else if (move.getEndSlot().equals(game.getBoard().getWhiteOut())) {
+				game.getBoard().getWhiteOut().addPiece(pieceToMove);
+			}
+			else {
+				// "bump" a piece from the slot if there's one of the opposite color there
+				if (move.getEndSlot().getPieces().size() > 0) {
+					Piece targetPiece = move.getEndSlot().getPieces().first();
+					if (targetPiece.color != game.getCurrentTurn().getColor()) {
+						move.setPieceBumped(true);
+						move.getEndSlot().removePiece(targetPiece);
+						
+						// The destination slot is already invalidated later, so we don't need to do it here.
+						game.getBoard().getBar().addPiece(targetPiece);
+					}
+				}
+				
+				// Now add the new piece to the slot
+				move.getEndSlot().addPiece(pieceToMove);
+			}
+			
+			clearStartSlot();
+		}
+	}
+	
+	public void undoMove() {
+		// undo moves from this turn if there are any
+		if (game.getCurrentTurn().getMoves().size() > 0) {
+			// Remove the last move from the list of moves
+			Move lastMove = game.getCurrentTurn().getMoves().get(game.getCurrentTurn().getMoves().size()-1);
+			game.getCurrentTurn().getMoves().remove(lastMove);
+			
+			// Undo the last move
+			Piece undoPiece = lastMove.getEndSlot().getPieces().last();
+			lastMove.getStartSlot().addPiece(undoPiece);
+			lastMove.getEndSlot().removePiece(undoPiece);
+			
+			//If we bumped a piece in the last move, put it back.
+			if (lastMove.isPieceBumped()) {
+				Bar bar = game.getBoard().getBar();
+				for (Piece piece: bar.getPieces()) {
+					if (piece.color != game.getCurrentTurn().getColor()) {
+						bar.removePiece(piece);
+						lastMove.getEndSlot().addPiece(piece);
+						break;
+					}
+				}
+			}
+			
+			lastMove.getDie().setUsed(false);
+		}
+		
+		clearStartSlot();
+	}
+
+	public boolean movesLeftForDie(GameDie gameDie) {
+		for (Move move : potentialMoves) {
+			if (move.getDie().equals(gameDie)) return true;
+		}
+		
+		return false;
 	}
 }
