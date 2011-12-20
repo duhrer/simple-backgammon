@@ -9,6 +9,7 @@ public class Slot implements Comparable<Slot>{
 	public final static int NONE = 0;
 	
 	public final static int TEXT_SIZE = 8;
+	public static final int INVALID_POSITION = -666;
 	
 	private Pieces pieces = new Pieces();
 	private final int direction;
@@ -38,9 +39,14 @@ public class Slot implements Comparable<Slot>{
 	}
 	
 	public Piece removePiece() {
-		return pieces.get(0);
-	}
+		if (pieces.size() > 0) {
+			Piece piece = pieces.get(0);
+			pieces.remove(piece);
+			return piece;
+		}
 
+		return null;
+	}
 	
 	public int getDirection() {
 		return this.direction;

@@ -37,15 +37,13 @@ public class Pieces extends ArrayList<Piece> {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!super.equals(obj))
-			return false;
 		if (!(obj instanceof Pieces))
 			return false;
 		Pieces other = (Pieces) obj;
 		
 		if (other.size() != this.size()) return false;
 		
-		// Since pieces are ordered by position, we should be able to compare each piece inthe list in turn
+		// Since pieces are ordered by position, we should be able to compare each piece in the list in turn
 		for (int a=0; a<this.size(); a++) {
 			if (!this.get(a).equals(other.get(a))) { return false; }
 		}

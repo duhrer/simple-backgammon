@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="about_intro">This page will eventually contain information about the program and credits.</string><string name="app_name">Simple Backgammon</string>
-    
-
-
-<string name="help_intro">Welcome to the help screen.  Use the &quot;menu&quot; key to open the tutorial, rules, etc.</string>
-<string name="menu_about">About</string><string name="menu_exit">Quit</string>
-<string name="menu_game">Back to Game</string><string name="menu_help">Help</string><string name="menu_help_back">Back to Help</string><string name="menu_new_game">New Game</string><string name="menu_rules">Rules</string>
-<string name="menu_tutorial">Tutorial</string><string name="rules_intro">This page will eventually hold the rules of the game.</string><string name="splash_screen">Touch screen to start game...</string>
-
-
-
-<string name="tutorial_intro">This page will eventually hold the tutorial content</string>
-
-
-<string name="menu_preferences">Preferences</string>
+    <string name="about_intro">This page will eventually contain information about the program and credits.</string>
+    <string name="app_name">Simple Backgammon</string>
+	<string name="help_intro">Welcome to the help screen.  Use the &quot;menu&quot; key to open the tutorial, rules, etc.</string>
+	<string name="menu_about">About</string>
+	<string name="menu_end_game">End Game</string>
+	<string name="menu_exit">Quit</string>
+	<string name="menu_game">Back to Game</string>
+	<string name="menu_help">Help</string>
+	<string name="menu_help_back">Back to Help</string>
+	<string name="menu_rules">Rules</string>
+	<string name="menu_preferences">Preferences</string>
+	<string name="menu_tutorial">Tutorial</string>
+	<string name="rules_intro">This page will eventually hold the rules of the game.</string>
+	<string name="splash_screen">Touch screen to start game...</string>
+	<string name="tutorial_intro">This page will eventually hold the tutorial content</string>
 </resources>

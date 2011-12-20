@@ -11,6 +11,7 @@ public class Move implements Comparable {
 	public static final String DIE		      = "die";
 	public static final String START_SLOT     = "start_slot";
 	public static final String END_SLOT	      = "end_slot";
+	public static final String PIECE_BUMPED   = "piece_bumped";
 	public static final String CREATED		  = "created";
 	
 	public static final String TABLE_NAME = "move";
@@ -23,6 +24,7 @@ public class Move implements Comparable {
 		DIE + " integer, " +
 		START_SLOT + " integer, " +
 		END_SLOT  + " integer, " +
+		PIECE_BUMPED + " boolean, " +
 		CREATED + " datetime " +
 		");";
 	
@@ -33,6 +35,7 @@ public class Move implements Comparable {
 			DIE,
 			START_SLOT,
 			END_SLOT,
+			PIECE_BUMPED,
 			CREATED
 	};
 	
@@ -42,14 +45,23 @@ public class Move implements Comparable {
 	// FIXME:  Find some way of handling moves that involve more than one die, not necessarily in the move object, but somewhere
 	private final SimpleDie die;
 	private final Player player;
-	private boolean pieceBumped = false;
-	private Date created = new Date();
+	protected boolean pieceBumped = false;
+	private final Date created;
 
 	public Move(Slot startSlot, Slot endSlot, SimpleDie die, Player player) {
 		this.startSlot = startSlot;
 		this.endSlot = endSlot;
 		this.die = die;
 		this.player = player;
+		this.created = new Date();
+	}
+	
+	public Move(Slot startSlot, Slot endSlot, SimpleDie die, Player player, Date created) {
+		this.startSlot = startSlot;
+		this.endSlot = endSlot;
+		this.die = die;
+		this.player = player;
+		this.created = created;
 	}
 
 	public Move (Move existingMove) {
@@ -58,6 +70,7 @@ public class Move implements Comparable {
 		// clone this so that changes to the original dice won't be reflected here
 		this.die = new SimpleDie(existingMove.die);
 		this.player = existingMove.getPlayer();
+		this.created = new Date();
 	}
 	
 	public Player getPlayer() {
@@ -80,20 +93,10 @@ public class Move implements Comparable {
 
 	public int compareTo(Object another) {
 		if (another instanceof Move) {
-			Move anotherMove = (Move) another;
-			/* sort by created first, used to keep logs, etc. sweet */
+			/* sort by date created */
 			if (this.created.after(((Move) another).created)) { return 1; }
 			else if (this.created.equals(((Move) another).created)) { return 0; }
 			else if (this.created.before(((Move) another).created)) { return -1; }
-			
-			/* sort by startSlot position if there is a difference */
-			if (anotherMove.startSlot.getPosition() > this.startSlot.getPosition()) { return 1; }
-			else if (anotherMove.startSlot.getPosition() < this.startSlot.getPosition()) { return -1; }
-			/* otherwise, sort by endSlot position if there is a difference */
-			else if (anotherMove.endSlot.getPosition() > this.endSlot.getPosition()) { return 1; }
-			else if (anotherMove.endSlot.getPosition() < this.endSlot.getPosition()) { return -1; }
-
-			return this.die.getValue() - anotherMove.die.getValue();
 		}
 
 		/* otherwise, they are sorted at the same level (should not be possible) */
@@ -110,10 +113,6 @@ public class Move implements Comparable {
 
 	public Date getCreated() {
 		return created;
-	}
-
-	public void setCreated(Date created) {
-		this.created = created;
 	}
 
 	public Slot getStartSlot() {

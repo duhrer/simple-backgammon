@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.anthonyatkins.simplebackgammon.model.Game;
-import com.anthonyatkins.simplebackgammon.model.GameDie;
 import com.anthonyatkins.simplebackgammon.model.SimpleDice;
 import com.anthonyatkins.simplebackgammon.model.SimpleDie;
 
@@ -34,7 +33,7 @@ public class DiceView extends ViewGroup{
 			// Add child views for all the dice in the set
 			Iterator<SimpleDie> dieIterator = game.getCurrentTurn().getDice().iterator();
 			while (dieIterator.hasNext()) {
-				GameDie die = (GameDie) dieIterator.next();
+				SimpleDie die = dieIterator.next();
 				addView(new DieView(context, die, game, color, theme));
 			}
 		}
