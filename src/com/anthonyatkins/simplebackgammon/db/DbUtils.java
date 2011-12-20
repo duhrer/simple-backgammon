@@ -1,14 +1,14 @@
 package com.anthonyatkins.simplebackgammon.db;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.anthonyatkins.simplebackgammon.Constants;
+import com.anthonyatkins.simplebackgammon.exception.InvalidMoveException;
 import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.Match;
 import com.anthonyatkins.simplebackgammon.model.Move;
@@ -20,7 +20,7 @@ import com.anthonyatkins.simplebackgammon.model.Turn;
 import com.anthonyatkins.simplebackgammon.model.TurnMove;
 
 public class DbUtils {
-	public static long getLastUnfinishedGame(SQLiteDatabase db) {
+	public static long getLastUnfinishedGameId(SQLiteDatabase db) {
 		if (db.isOpen()) {
 			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS,Game.FINISHED + "=0",null,null,null,Game.CREATED + " desc","1");
 			if (cursor.getCount() > 0) {
@@ -49,6 +49,9 @@ public class DbUtils {
 	}
 
 	public static void loadGameFromCursor(SQLiteDatabase db, Game game, Cursor cursor) {
+		int id = cursor.getInt(cursor.getColumnIndex(Game._ID));
+		game.setId(id);
+		
 		int points = cursor.getInt(cursor.getColumnIndex(Game.POINTS));
 		game.setPoints(points);
 		
@@ -59,41 +62,27 @@ public class DbUtils {
 		game.setStartingColor(startingColor);
 
 		// get the list of turns 
-		List<Turn> turns = getTurnsByGame(game,db);
+		loadTurnsByGame(game,db);
 		
-		// get the list of moves for each turn and replay each move in order
-		if (turns != null && turns.size() > 0) {
-			for (Turn turn : turns) {
-				List<Move> moves = getMovesByTurn(turn, game, db);
-				if (moves != null) {
-					for (Move move: moves) {
-						game.makeMove(move);
-					}
-				}
-			}
-		}
-		else {
-			game.newTurn(startingColor == Constants.BLACK ? game.getBlackPlayer() : game.getWhitePlayer());
+		// if there were no turns saved, this is a corrupt game, and we'll have to throw an exception
+		if (game.getGameLog().size() == 0) {
+			Log.e("DbUtils.loadGameFromCursor()", "There were no turn saved for this game, adding a new turn to the game log to avoid a crash");
+			new Turn(startingColor == Constants.BLACK ? game.getBlackPlayer() : game.getWhitePlayer(),game,startingColor);
 		}
 		
-		
-		if (finished) { 
-			game.setState(Game.GAME_OVER);
-		}
-		else {
-			game.setState(Game.MOVE_PICK_SOURCE);
-		}
+		int gameState = cursor.getInt(cursor.getColumnIndex(Game.GAME_STATE));
+		game.setState(gameState);
 	}
 	
 	public static Match getMatchById(long matchId, SQLiteDatabase db) {
 		if (db.isOpen()) {
-			Cursor cursor = db.query(Match.TABLE_NAME, Match.COLUMNS,null,null,null,null,null,null);
+			Cursor cursor = db.query(Match.TABLE_NAME, Match.COLUMNS,Match._ID + "=" + matchId,null,null,null,null,null);
 			if (cursor.getCount() > 0) {
 				cursor.moveToFirst();
 				int blackPlayerId = cursor.getInt(cursor.getColumnIndex(Match.BLACK_PLAYER));
-				Player blackPlayer = getPlayerById(blackPlayerId, Constants.BLACK, db);
+				Player blackPlayer = getPlayerById(blackPlayerId, db);
 				int whitePlayerId = cursor.getInt(cursor.getColumnIndex(Match.WHITE_PLAYER));
-				Player whitePlayer = getPlayerById(whitePlayerId, Constants.WHITE, db);
+				Player whitePlayer = getPlayerById(whitePlayerId, db);
 
 				int pointsToFinish = cursor.getInt(cursor.getColumnIndex(Match.POINTS_TO_WIN));
 
@@ -111,31 +100,43 @@ public class DbUtils {
 		return null;
 	}
 
-	public static List<Move> getMovesByTurn(Turn turn, Game game, SQLiteDatabase db) {
-		List<Move> moves = new ArrayList<Move>();
-
+	public static void loadMovesByTurn(Turn turn, Game game, SQLiteDatabase db) {
 		if (db.isOpen()) {
-			Cursor cursor = db.query(Move.TABLE_NAME, Move.COLUMNS,Move.TURN + "=" + turn.getId(),null,null,null,"order by " + Move.CREATED,null);
+			// get the list of moves for this turn and replay each move in order
+			Cursor cursor = db.query(Move.TABLE_NAME, Move.COLUMNS,Move.TURN + "=" + turn.getId(),null,null,null,Move.CREATED,null);
 			if (cursor.getCount() > 0) {
 				cursor.moveToPosition(-1);
 				while (cursor.moveToNext()) {
 					int startPos = cursor.getInt(cursor.getColumnIndex(Move.START_SLOT));
 					Slot startSlot = game.getBoard().getPlaySlots().get(startPos);
+					
 					int endPos = cursor.getInt(cursor.getColumnIndex(Move.END_SLOT));
 					Slot endSlot = game.getBoard().getPlaySlots().get(endPos);
 
+					boolean pieceBumped = cursor.getInt(cursor.getColumnIndex(Move.PIECE_BUMPED)) == 1 ? true : false;
+
 					int dieValue = cursor.getInt(cursor.getColumnIndex(Move.DIE));
-					SimpleDie die = new SimpleDie(dieValue,turn.getColor());
 					
-					TurnMove move = new TurnMove(startSlot, endSlot, die, turn);
 					int createdTimestamp = cursor.getInt(cursor.getColumnIndex(Move.CREATED));
 					Date created = new Date((long) createdTimestamp);
-					move.setCreated(created);
+					
+					// FIXME:  Get the first matching die from this turn and use it for the move
+					for (SimpleDie die : turn.getDice()) {
+						if (die.getValue() == dieValue && !die.isUsed()) {
+							try {
+								Move move = new Move(startSlot, endSlot, die, turn.getPlayer(), created);
+								move.setPieceBumped(pieceBumped);
+								turn.makeMove(move);
+								break;
+							} catch (InvalidMoveException e) {
+								Log.e("loadGameFromCursor()", "Error replaying moves from stored game...", e);
+							}
+						}
+					}
+					
 				}
 			}
 		}
-
-		return moves;
 	}
 	
 	public static long saveMatch(Match match, SQLiteDatabase db) {
@@ -182,50 +183,63 @@ public class DbUtils {
 		values.put(Turn.DIE_ONE, turn.getDice().get(0).getValue());
 		values.put(Turn.DIE_TWO, turn.getDice().get(1).getValue());
 		values.put(Turn.CREATED, turn.getCreated().getTime());
+		values.put(Turn.START_SLOT, turn.getStartSlot() == null ? Slot.INVALID_POSITION : turn.getStartSlot().getPosition());
 		
 		if (turn.getId() == -1) {
 			long turnId = db.insert(Turn.TABLE_NAME, null, values);
 			turn.setId(turnId);
 		}
 		else {
-			db.update(Turn.TABLE_NAME, values, Turn._ID + "=" + turn.getId(), null);
+			Cursor cursor = db.query(Turn.TABLE_NAME, Turn.COLUMNS, Turn._ID + "=" + turn.getId(), null, null, null, null);
+			if (cursor.getCount() > 0) {
+				values.put(Turn._ID, turn.getId());
+				db.update(Turn.TABLE_NAME, values, Turn._ID + "=" + turn.getId(), null);
+			}
+			else {
+				long turnId = db.insert(Turn.TABLE_NAME, null, values);
+				turn.setId(turnId);
+			}
 		}
 		
 		for (Move move : turn.getMoves()) {
 			if (move instanceof TurnMove) {
 				saveMove((TurnMove) move, db);
 			}
+			else {
+				saveMove(move, turn, db);
+			}
 		}
 		
 		return turn.getId();
 	}
-	
+
 	public static int deleteTurn(Turn turn, SQLiteDatabase db) {
-		for (Move move : turn.getMoves()) {
-			deleteMove(move, db);
-		}
+		db.delete(Move.TABLE_NAME, Move.TURN+"="+turn.getId(), null);
 		return db.delete(Turn.TABLE_NAME, Turn._ID + "=" + turn.getId(), null);
 	}
 	
-	public static long saveMove(TurnMove move, SQLiteDatabase db) {
+	private static long saveMove(Move move, Turn turn, SQLiteDatabase db) {
 		ContentValues values = new ContentValues();
-
-		values.put(Move.TURN, move.getTurn().getId());
+		
+		values.put(Move.TURN, turn.getId());
 		values.put(Move.PLAYER, move.getPlayer().getId());
 		values.put(Move.DIE, move.getDie().getValue());
 		values.put(Move.START_SLOT, move.getStartSlot().getPosition());
 		values.put(Move.END_SLOT, move.getEndSlot().getPosition());
 		values.put(Move.CREATED, move.getCreated().getTime());
 		
-		if (move.getId() == -1) {
-			long moveId = db.insert(Move.TABLE_NAME, null, values);
-			move.setId(moveId);
-			return moveId;
+		if (move.getId() != -1) {
+			values.put(Move._ID, move.getId());
 		}
-		else {
-			db.update(Move.TABLE_NAME, values, Move._ID + "=" + move.getId(), null);
-			return move.getId();
-		}
+
+		long moveId = db.insert(Move.TABLE_NAME, null, values);
+		move.setId(moveId);
+		
+		return moveId;
+	}
+	
+	public static long saveMove(TurnMove move, SQLiteDatabase db) {
+		return saveMove(move, move.getTurn(),db);
 	}
 	
 	public static int deleteMove(Move move, SQLiteDatabase db) {
@@ -265,6 +279,8 @@ public class DbUtils {
 		values.put(Game.MATCH, game.getMatch().getId());
 		values.put(Game.BLACK_PLAYER, game.getBlackPlayer().getId());
 		values.put(Game.WHITE_PLAYER, game.getWhitePlayer().getId());
+		values.put(Game.STARTING_COLOR, game.getStartingColor());
+		values.put(Game.GAME_STATE, game.getState());
 		values.put(Game.POINTS, game.getPoints());
 		values.put(Game.FINISHED, game.isFinished() ? 1 : 0);
 		values.put(Game.CREATED, game.getCreated().getTime());
@@ -275,8 +291,19 @@ public class DbUtils {
 			game.setId(gameId);
 		}
 		else {
-			// This is an existing game
-			db.update(Game.TABLE_NAME, values, Game._ID + "=" + game.getId(), null);
+			// This is an existing game, see if it already exists in the database
+			Cursor cursor = db.query(Game.TABLE_NAME, Game.COLUMNS, Game._ID + "=" + game.getId(), null, null, null, null);
+			if (cursor.getCount() > 0) {
+				values.put(Game._ID, game.getId());
+				db.update(Game.TABLE_NAME, values, Game._ID + "=" + game.getId(), null);
+				
+				// We have to get rid of our existing move history since this is an update
+				deleteTurnsByGame(game,db);
+			}
+			else {
+				long gameId = db.insert(Game.TABLE_NAME, null, values );
+				game.setId(gameId);
+			}
 		}
 		
 		for (Turn turn : game.getGameLog()) {
@@ -284,6 +311,12 @@ public class DbUtils {
 		}
 		
 		return game.getId();
+	}
+
+	private static void deleteTurnsByGame(Game game, SQLiteDatabase db) {
+		for (Turn turn : game.getGameLog()) {
+			deleteTurn(turn,db);
+		}
 	}
 
 	public static int deleteGame(Game game, SQLiteDatabase db) {
@@ -307,33 +340,36 @@ public class DbUtils {
 		}
 	}
 	
-	public static List<Turn> getTurnsByGame(Game game, SQLiteDatabase db) {
-		List<Turn> turns = new ArrayList<Turn>();
-
+	public static void loadTurnsByGame(Game game, SQLiteDatabase db) {
+		game.getGameLog().clear();
 		if (db.isOpen()) {
-			Cursor cursor = db.query(Turn.TABLE_NAME, Turn.COLUMNS,Turn.GAME + "=" + game.getId(),null,null,null,Move.CREATED + " desc",null);
+			Cursor cursor = db.query(Turn.TABLE_NAME, Turn.COLUMNS,Turn.GAME + "=" + game.getId(),null,null,null,Turn.CREATED,null);
 			if (cursor.getCount() > 0) {
 				cursor.moveToPosition(-1);
 				while (cursor.moveToNext()) {
+					int turnId = cursor.getInt(cursor.getColumnIndex(Turn._ID));
 					int playerId = cursor.getInt(cursor.getColumnIndex(Turn.PLAYER));
 					int color = cursor.getInt(cursor.getColumnIndex(Turn.COLOR));
 					int d1Value = cursor.getInt(cursor.getColumnIndex(Turn.DIE_ONE));
 					int d2Value = cursor.getInt(cursor.getColumnIndex(Turn.DIE_TWO));
-					Player player = getPlayerById(playerId, color, db);
+					int startSlot = cursor.getInt(cursor.getColumnIndex(Turn.START_SLOT));
+					Date created = new Date(cursor.getInt(cursor.getColumnIndex(Turn.CREATED)));
+					Player player = getPlayerById(playerId, db);
 					
-					SimpleDice dice = new SimpleDice(color);
-					dice.add(new SimpleDie(d1Value,color));
-					dice.add(new SimpleDie(d2Value,color));
-					new Turn(player, game, color);
+					SimpleDice dice = new SimpleDice(d1Value,d2Value,color);
+					Turn newTurn = new Turn(player,game,color,created,dice);
+					newTurn.setId(turnId);
+					if (startSlot != Slot.INVALID_POSITION) newTurn.setStartSlot(startSlot);
+					
+					game.findAllPotentialMoves();
+
+					loadMovesByTurn(newTurn, game, db);
 				}
 			}
 		}
-
-		
-		return turns;
 	}
 
-	public static Player getPlayerById(long playerId, int color, SQLiteDatabase db) {
+	public static Player getPlayerById(long playerId, SQLiteDatabase db) {
 		Player player = new Player();
 
 		if (db.isOpen()) {

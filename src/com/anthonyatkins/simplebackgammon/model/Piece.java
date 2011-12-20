@@ -1,5 +1,7 @@
 package com.anthonyatkins.simplebackgammon.model;
 
+import com.anthonyatkins.simplebackgammon.Constants;
+
 public class Piece implements Comparable<Piece> {
 	public int color;
 	public int position;
@@ -34,5 +36,10 @@ public class Piece implements Comparable<Piece> {
 
 	public int compareTo(Piece otherPiece) {
 		return this.position - otherPiece.position;
+	}
+
+	@Override
+	public String toString() {
+		return "Piece [" + ((color == Constants.BLACK) ? "black" : "white")  + ", slot " + position + "]";
 	}
 }

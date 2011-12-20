@@ -4,13 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class GameLog extends ArrayList<Turn> {
-	public GameLog(GameLog gameLog) {
-		Iterator<Turn> turnIterator = gameLog.iterator();
-		while (turnIterator.hasNext()) {
-			this.add(new Turn(turnIterator.next()));
-		}
-	}
-
 	public GameLog() {
 	}
 

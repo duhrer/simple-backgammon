@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.anthonyatkins.simplebackgammon.Constants;
 import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.Match;
 import com.anthonyatkins.simplebackgammon.model.Move;

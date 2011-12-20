@@ -14,6 +14,7 @@ public class Game {
 	public static final String BLACK_PLAYER	   = "black_player";
 	public static final String WHITE_PLAYER	   = "white_player";
 	public static final String STARTING_COLOR  = "starting_color";
+	public static final String GAME_STATE  	   = "game_state";
 	public static final String POINTS          = "points";
 	public static final String FINISHED        = "finished";
 	public static final String CREATED         = "created";
@@ -27,6 +28,7 @@ public class Game {
 		BLACK_PLAYER + " integer, " +
 		WHITE_PLAYER + " integer, " +
 		STARTING_COLOR + " integer, " +
+		GAME_STATE + " integer, " +
 		POINTS + " integer, " +
 		FINISHED + " boolean, " +
 		CREATED + " datetime " +
@@ -38,6 +40,7 @@ public class Game {
 			BLACK_PLAYER,
 			WHITE_PLAYER,
 			STARTING_COLOR,
+			GAME_STATE,
 			POINTS,
 			FINISHED,
 			CREATED
@@ -66,9 +69,6 @@ public class Game {
 	
 	private int state = STARTUP;
 
-	// The turn that will eventually be added to the GameLog
-	private Turn currentTurn;
-	
 	// FIXME:  We have no code to manage matches yet
 	private final Match match;
 	private boolean isFinished = false;
@@ -79,16 +79,15 @@ public class Game {
 		this.match = match;
 		match.addGame(this);
 		
-		this.gameLog = new GameLog();
-		
 		this.blackPlayer = (match.getBlackPlayer()); 
 		this.whitePlayer = (match.getWhitePlayer()); 
 
+		this.gameLog = new GameLog();
+		new Turn(startingColor == Constants.BLACK ? match.getBlackPlayer() : match.getWhitePlayer(),this,startingColor);
+		
 		this.board = (new Board(this));
 		
 		this.startingColor = startingColor;
-		
-		this.currentTurn = new Turn(startingColor == Constants.BLACK ? blackPlayer : whitePlayer, this, startingColor);
 	}
 
 	/* Create a new game based on an existing game.   Used primarily for unit tests. */
@@ -99,14 +98,17 @@ public class Game {
 		this.whitePlayer = (match.getWhitePlayer()); 
 		this.board = (new Board(baselineGame.getBoard(), this));
 		
-		this.gameLog = (new GameLog(baselineGame.getGameLog()));
+		this.gameLog = new GameLog();
+		Iterator<Turn> turnIterator = baselineGame.getGameLog().iterator();
+		while (turnIterator.hasNext()) {
+			new Turn(turnIterator.next(), this);
+		}
 		
 		this.startingColor = baselineGame.getStartingColor();
-		this.currentTurn = baselineGame.getCurrentTurn();
 	}
 
 
-	private int getStartingColor() {
+	public int getStartingColor() {
 		return this.startingColor;
 	}
 
@@ -122,13 +124,18 @@ public class Game {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((getGameLog() == null) ? 0 : getGameLog().hashCode());
 		result = prime * result
-				+ ((getBlackPlayer() == null) ? 0 : getBlackPlayer().hashCode());
-		result = prime * result + ((getBoard() == null) ? 0 : getBoard().hashCode());
+				+ ((blackPlayer == null) ? 0 : blackPlayer.hashCode());
+		result = prime * result + ((board == null) ? 0 : board.hashCode());
+		result = prime * result + ((created == null) ? 0 : created.hashCode());
+		result = prime * result + ((gameLog == null) ? 0 : gameLog.hashCode());
+		result = prime * result + (int) (id ^ (id >>> 32));
+		result = prime * result + (isFinished ? 1231 : 1237);
+		result = prime * result + points;
+		result = prime * result + startingColor;
 		result = prime * result + state;
 		result = prime * result
-				+ ((getWhitePlayer() == null) ? 0 : getWhitePlayer().hashCode());
+				+ ((whitePlayer == null) ? 0 : whitePlayer.hashCode());
 		return result;
 	}
 
@@ -138,40 +145,53 @@ public class Game {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Game))
+		if (getClass() != obj.getClass())
 			return false;
 		Game other = (Game) obj;
-		if (getGameLog() == null) {
-			if (other.getGameLog() != null)
+		if (blackPlayer == null) {
+			if (other.blackPlayer != null)
 				return false;
-		} else if (!getGameLog().equals(other.getGameLog()))
+		} else if (!blackPlayer.equals(other.blackPlayer))
 			return false;
-		if (getBlackPlayer() == null) {
-			if (other.getBlackPlayer() != null)
+		if (board == null) {
+			if (other.board != null)
 				return false;
-		} else if (!getBlackPlayer().equals(other.getBlackPlayer()))
+		} else if (!board.equals(other.board))
 			return false;
-		if (getBoard() == null) {
-			if (other.getBoard() != null)
+		if (gameLog == null) {
+			if (other.gameLog != null)
 				return false;
-		} else if (!getBoard().equals(other.getBoard()))
+		} else if (!gameLog.equals(other.gameLog))
+			return false;
+		if (id != other.id)
+			return false;
+		if (isFinished != other.isFinished)
+			return false;
+		if (points != other.points)
+			return false;
+		if (startingColor != other.startingColor)
 			return false;
 		if (state != other.state)
 			return false;
-		if (getWhitePlayer() == null) {
-			if (other.getWhitePlayer() != null)
+		if (whitePlayer == null) {
+			if (other.whitePlayer != null)
 				return false;
-		} else if (!getWhitePlayer().equals(other.getWhitePlayer()))
+		} else if (!whitePlayer.equals(other.whitePlayer))
 			return false;
 		return true;
 	}
 
 	public void newTurn() {
-		newTurn(currentTurn.getPlayer().equals(blackPlayer) ? whitePlayer : blackPlayer);
+		if (getCurrentTurn().getColor() == Constants.BLACK) {
+			newTurn(whitePlayer,Constants.WHITE);
+		}
+		else {
+			newTurn(blackPlayer,Constants.BLACK);
+		}
 	}
 
-	public void newTurn(Player player) {
-		currentTurn = new Turn(player,this,player.equals(blackPlayer)?Constants.BLACK:Constants.WHITE);
+	public void newTurn(Player player, int color) {
+		new Turn(player,this,color);
 	}
 	
 	public Player getBlackPlayer() {
@@ -183,13 +203,13 @@ public class Game {
 	}
 	
 	public Turn getCurrentTurn() {
-		return this.currentTurn;
+		if (gameLog.size() > 0) {
+			return gameLog.get(gameLog.size()-1);
+		}
+
+		return null;
 	}
 	
-	public void setCurrentTurn(Turn turn) {
-		this.currentTurn = turn;
-	}
-
 	public int getPoints() {
 		return points;
 	}
@@ -200,14 +220,6 @@ public class Game {
 
 	public void setFinished(boolean isFinished) {
 		this.isFinished  = isFinished;
-	}
-
-	public void makeMove(Move move) {
-		Slot startSlot = getBoard().getPlaySlots().get(move.getStartSlot().getPosition());
-		Piece piece = startSlot.removePiece();
-		
-		Slot endSlot = getBoard().getPlaySlots().get(move.getStartSlot().getPosition());
-		endSlot.addPiece(piece);
 	}
 
 	public void setId(long id) {

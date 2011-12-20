@@ -208,7 +208,7 @@ public class GameController {
 				removeAllListeners();
 
 				// If we started on the bar, we can touch the bar to cancel our move.
-				if (getStartSlot().equals(gameView.getGame().getBoard().getBar())) {
+				if (getStartSlot() != null && getStartSlot().equals(gameView.getGame().getBoard().getBar())) {
 					addListener(gameView.getBoardView().getCombinedBarView().getBarView(),new ChangeStateListener(Game.MOVE_PICK_SOURCE));
 				}
 				// otherwise, wire up the possible destination slots based on the source slot

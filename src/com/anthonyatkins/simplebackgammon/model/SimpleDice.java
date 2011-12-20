@@ -26,6 +26,12 @@ public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
 		}
 	}
 
+	public SimpleDice(int d1, int d2, int color) {
+		this.color=color;
+		
+		roll(d1,d2);
+	}
+
 	public int getColor() {
 		return this.color;
 	}
@@ -33,21 +39,22 @@ public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
 	public void setColor(int color){
 		this.color = color;
 	}
-	
+
 	protected void roll() {
+		int d1 = (int) (Math.round(Math.random() * 5) + 1);
+		int d2 = (int) (Math.round(Math.random() * 5) + 1);
+
+		roll(d1,d2);
+	}
+	
+	public void roll(int d1, int d2) {
 		this.clear();
-		SimpleDie die1 = new SimpleDie(this.color);
-		die1.roll();
+		SimpleDie die1 = new SimpleDie(d1,this.color);
 		this.add(die1);
-		SimpleDie die2 = new SimpleDie(this.color);
-		die2.roll();
+		SimpleDie die2 = new SimpleDie(d2,this.color);
 		this.add(die2);
-		// we will use the dice to keep track of what we can still move
-		// so, add two more dice if we have doubles
-		if (this.get(0).getValue() == this.get(1).getValue() && this.get(0).getValue() != 0) {
-			this.add(new SimpleDie(this.get(0).getValue(), this.color));
-			this.add(new SimpleDie(this.get(0).getValue(), this.color));
-		}
+		
+		checkForDoubles();
 	}
 
 	/**
@@ -128,5 +135,14 @@ public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
 
 	public int compareTo(Object another) {
 		return 0;
+	}
+	
+	protected void checkForDoubles() {
+		// we will use the dice to keep track of what we can still move
+		// so, add two more dice if we have doubles
+		if (this.get(0).getValue() == this.get(1).getValue() && this.get(0).getValue() != 0) {
+			this.add(new SimpleDie(this.get(0).getValue(), this.color));
+			this.add(new SimpleDie(this.get(0).getValue(), this.color));
+		}
 	}
 }

@@ -39,6 +39,11 @@ public class Player {
 		this.name = existingPlayer.getName();
 	}
 
+	public Player(String name, int id) {
+		this.name = name;
+		this.id = id;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -50,11 +55,9 @@ public class Player {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
+		if (obj == null) 
 			return false;
-		if (getClass() != obj.getClass())
+		if (!(obj instanceof Player)) 
 			return false;
 		Player other = (Player) obj;
 		if (id != other.id)
@@ -62,8 +65,10 @@ public class Player {
 		if (name == null) {
 			if (other.name != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} 
+		else if (!name.equals(other.name))
 			return false;
+		
 		return true;
 	}
 

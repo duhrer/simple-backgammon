@@ -26,12 +26,7 @@ import com.anthonyatkins.simplebackgammon.model.Player;
 import com.anthonyatkins.simplebackgammon.view.GameView;
 
 public class SimpleBackgammon extends Activity {
-	public final static String BOARD_STATE = "BoardState";
-	public final static String GAME_STATE = "GameState";
-	public final static String ACTIVE_PLAYER_DICE_STATE = "ActivePlayerDiceState";
-	public final static String INACTIVE_PLAYER_DICE_STATE = "InactivePlayerDiceState";
-	
-	public final static int MENU_NEW_GAME = 1;
+	public final static int MENU_END_GAME = 1;
 	public final static int MENU_HELP = 2;
 	private static final int MENU_PREFS = 3;
 	public final static int MENU_EXIT = 99;
@@ -39,6 +34,7 @@ public class SimpleBackgammon extends Activity {
 	public static final int ACTIVITY_CODE = 111;
 	
 	public static final int EXIT_RETURN_CODE = -123;
+	public static final int GAME_OVER_RETURN_CODE = -234;
 	
 	Match match;
 	Game game;
@@ -60,39 +56,36 @@ public class SimpleBackgammon extends Activity {
 
     	super.onCreate(savedInstanceState);
     	    	
-    	// FIXME: Read the first two active players from the database and make them Black and White in that order
-
     	this.dbHelper = new DbOpenHelper(this);
-    	
-    	Player blackPlayer = new Player("Black Player");
-    	Player whitePlayer = new Player("White Player");
     	
     	Bundle bundle = this.getIntent().getExtras();
 		if (bundle != null) {
-			long gameId = bundle.getLong(Game._ID);
 			SQLiteDatabase db = dbHelper.getReadableDatabase();
+			long gameId = bundle.getLong(BackgammonStartupActivity.GAME_ID_KEY);
 			// Load the match for this game 
 			this.match = DbUtils.getMatchByGameId(gameId,db);
 			db.close();
 			
+			// This is the start of a new match
 			if (this.match == null) {
-				this.match = new Match(blackPlayer,whitePlayer,1);
+				long blackPlayerId = bundle.getLong(BackgammonStartupActivity.BLACK_PLAYER_KEY,1);
+				Player blackPlayer = DbUtils.getPlayerById(blackPlayerId, db);
+				long whitePlayerId = bundle.getLong(BackgammonStartupActivity.WHITE_PLAYER_KEY,2);
+				Player whitePlayer = DbUtils.getPlayerById(whitePlayerId, db);
+				int pointsToWin = bundle.getInt(BackgammonStartupActivity.POINTS_TO_WIN_KEY,1);
+				this.match = new Match(blackPlayer,whitePlayer,pointsToWin);
 			}
 			// Find the game with the right id
 			this.game = match.getGameById(gameId);
+			
 			if (this.game == null) {
-				
-				int startColor = bundle.getInt(StartupActivity.START_COLOR_KEY,Constants.BLACK);
-				
+				int startColor = bundle.getInt(BackgammonStartupActivity.START_COLOR_KEY,Constants.BLACK);
 				this.game = new Game(match,startColor);
 			}
 		}
 		else { 
-			// This should never happen, if you start getting a lot of games with black as the default, that's why... :)
-
-			// FIXME:  throw an error and die if the parent activity didn't tell us which player is going first
-			this.match = new Match(blackPlayer,whitePlayer,1);
-			this.game = new Game(match,Constants.BLACK);
+			// Take us back to the parent activity if we don't know which player is going first
+			finish();
 		}
 		
 		this.gameView = new GameView(this,this.game);
@@ -101,8 +94,6 @@ public class SimpleBackgammon extends Activity {
 		
 		setContentView(gameView);
     }
-
-    
     
 	@Override
 	protected void onDestroy() {
@@ -111,15 +102,13 @@ public class SimpleBackgammon extends Activity {
 		saveGameToDb();
 	}
 
-
-
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		
 		saveGameToDb();
 		
-		// Store the game ID in the out bundle, we'll try to restore that if we can.
+		// Store the game ID in the out bundle so we can restore it next time
 		outState.putLong(Game._ID, game.getId());
 	}
 
@@ -131,7 +120,7 @@ public class SimpleBackgammon extends Activity {
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
-		menu.add(0, MENU_NEW_GAME, 0, R.string.menu_new_game);
+		menu.add(0, MENU_END_GAME, 0, R.string.menu_end_game);
 		menu.add(0, MENU_HELP, 1, R.string.menu_help);
 		menu.add(0, MENU_PREFS, 2, R.string.menu_preferences);
 		menu.add(0, MENU_EXIT, 3, R.string.menu_exit);
@@ -140,7 +129,7 @@ public class SimpleBackgammon extends Activity {
 
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
-		menu.add(0, MENU_NEW_GAME, 0, R.string.menu_new_game);
+		menu.add(0, MENU_END_GAME, 0, R.string.menu_end_game);
 		menu.add(0, MENU_HELP, 1, R.string.menu_help);
 		menu.add(0, MENU_PREFS, 2, R.string.menu_preferences);
 		menu.add(0, MENU_EXIT, 3, R.string.menu_exit);
@@ -149,9 +138,9 @@ public class SimpleBackgammon extends Activity {
 	
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case MENU_NEW_GAME:
-			// FIXME:  The old game needs to be forced to conceed and we need to kick the user back out to the start screen.
-			gameController.setGameState(Game.STARTUP); 
+		case MENU_END_GAME:
+			setResult(GAME_OVER_RETURN_CODE);
+			finish();
 			break;
 		case MENU_HELP:
 			Intent helpIntent = new Intent(this,HelpActivity.class);

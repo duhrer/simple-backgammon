@@ -8,7 +8,7 @@ public class SimpleDie implements Comparable{
 
 	public SimpleDie(int color) {
 		this.color = color;
-		this.value = 0;
+		roll();
 	}
 	
 	public SimpleDie(int value, int color) {
@@ -62,7 +62,7 @@ public class SimpleDie implements Comparable{
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
+		if (!(obj instanceof SimpleDie))
 			return false;
 		SimpleDie other = (SimpleDie) obj;
 		if (color != other.color)

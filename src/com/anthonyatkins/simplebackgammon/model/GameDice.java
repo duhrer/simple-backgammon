@@ -26,9 +26,15 @@ public class GameDice extends SimpleDice{
 		this.add(die2);
 		// we will use the dice to keep track of what we can still move
 		// so, add two more dice if we have doubles
+		checkForDoubles();
+	}
+	
+	@Override
+	protected void checkForDoubles() {
 		if (this.get(0).getValue() == this.get(1).getValue() && this.get(0).getValue() != 0) {
 			this.add(new GameDie(this.get(0).getValue(), this.getColor(),turn));
 			this.add(new GameDie(this.get(0).getValue(), this.getColor(),turn));
 		}
 	}
+
 }
