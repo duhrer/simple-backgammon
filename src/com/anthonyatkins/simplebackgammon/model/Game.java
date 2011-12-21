@@ -1,9 +1,7 @@
 package com.anthonyatkins.simplebackgammon.model;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 
 import com.anthonyatkins.simplebackgammon.Constants;
 
@@ -81,13 +79,12 @@ public class Game {
 		
 		this.blackPlayer = (match.getBlackPlayer()); 
 		this.whitePlayer = (match.getWhitePlayer()); 
-
 		this.gameLog = new GameLog();
-		new Turn(startingColor == Constants.BLACK ? match.getBlackPlayer() : match.getWhitePlayer(),this,startingColor);
-		
 		this.board = (new Board(this));
-		
 		this.startingColor = startingColor;
+		
+		Turn turn = new Turn(startingColor == Constants.BLACK ? match.getBlackPlayer() : match.getWhitePlayer(),this,startingColor);
+		turn.findAllPotentialMoves();
 	}
 
 	/* Create a new game based on an existing game.   Used primarily for unit tests. */
@@ -101,7 +98,8 @@ public class Game {
 		this.gameLog = new GameLog();
 		Iterator<Turn> turnIterator = baselineGame.getGameLog().iterator();
 		while (turnIterator.hasNext()) {
-			new Turn(turnIterator.next(), this);
+			Turn turn = new Turn(turnIterator.next(), this);
+			turn.findAllPotentialMoves();
 		}
 		
 		this.startingColor = baselineGame.getStartingColor();
@@ -191,7 +189,8 @@ public class Game {
 	}
 
 	public void newTurn(Player player, int color) {
-		new Turn(player,this,color);
+		Turn turn = new Turn(player,this,color);
+		turn.findAllPotentialMoves();
 	}
 	
 	public Player getBlackPlayer() {
@@ -276,118 +275,6 @@ public class Game {
 		}
 
 		return canMoveOut;
-	}
-	
-	/**
-	 * Determine the slots the active player can move from.  Only used for normal slots, and not for the bar or dugouts.
-	 * @return The list of slots that have valid moves.
-	 */
-	public void findAllPotentialMoves() {
-		// If we have pieces on the bar, that's our only option at first
-		if (getBoard().getBar().containsPlayerPieces(getCurrentTurn().getColor())) {
-			getCurrentTurn().setStartSlot(getBoard().getBar());
-			getAvailableMovesFromBar();
-		}
-		else {
-			Moves potentialMoves = getCurrentTurn().getPotentialMoves();
-			potentialMoves.clear();
-			
-			/* this detects all non-bar moves, there should be no others when we run this */
-			List<Integer> uniquePositions = new ArrayList<Integer>();
-			Pieces pieces = getCurrentTurn().getColor() == Constants.BLACK ? getBoard().getBlackPieces() : getBoard().getWhitePieces();
-			Iterator<Piece> pieceIterator = pieces.iterator();
-			while (pieceIterator.hasNext()) {
-				Piece piece = pieceIterator.next();
-				int position = piece.position;
-				if (position >= 0 && position <= 23 && !uniquePositions.contains(position)) { uniquePositions.add(position); }
-			}
-			
-			for (int b=0; b < uniquePositions.size(); b++) {
-				Moves slotMoves = findAvailableMovesFromSlot(getBoard().getPlaySlots().get(uniquePositions.get(b)));
-				potentialMoves.addAll(slotMoves);
-			}
-		}
-	}
-			
-	/**
-	 * Tag the moves that are possible from a given slot.
-	 * @param slot  The slot to check.
-	 */
-	public Moves findAvailableMovesFromSlot(Slot slot) {
-		Moves slotMoves = new Moves();
-		int slotPosition = slot.getPosition();
-		List<Integer> uniqueDieValues = new ArrayList<Integer>();
-
-		
-		Iterator<SimpleDie> dieIterator = getCurrentTurn().getDice().iterator();
-		while (dieIterator.hasNext()) {
-			SimpleDie die = dieIterator.next();
-			if (!die.isUsed() && !uniqueDieValues.contains(new Integer(die.getValue()))) {
-				/* If we have doubles, we only want to add moves for the first die */
-				uniqueDieValues.add(new Integer(die.getValue()));
-				int diePosition = slotPosition + (getCurrentTurn().getColor() * die.getValue());
-				if (diePosition >= 0 && diePosition <= 23) {
-						Slot destinationSlot = getBoard().getPlaySlots().get(diePosition);
-						if (!destinationSlot.isBlocked(getCurrentTurn().getColor())) { 
-							Move potentialMove = new Move(slot,destinationSlot,die, getCurrentTurn().getPlayer());
-							slotMoves.add(potentialMove);
-						}
-				}
-				else if (playerCanMoveOut()) {
-					// If the piece is in the right position, it can always move out.
-					// If it's the trailing edge of the player's pieces, it can move out with any roll high enough
-					if (getCurrentTurn().getColor() == Constants.BLACK) { 
-						
-						if (diePosition == 24 || (getBoard().getBlackPieces().first().position == slotPosition && diePosition > 24)) {
-							Move potentialMove = new Move(slot,getBoard().getBlackOut(),die, getCurrentTurn().getPlayer());
-							slotMoves.add(potentialMove);
-						}
-					}
-					else { 
-						if (diePosition == -1 || (getBoard().getWhitePieces().last().position == slotPosition && diePosition < -1)) {
-							Move potentialMove = new Move(slot,getBoard().getWhiteOut(),die, getCurrentTurn().getPlayer());
-							slotMoves.add(potentialMove);
-						}
-					}
-				}
-			}
-		}
-		
-		return slotMoves;
-	}
-	
-	/**
-	 * Get the list of slots the active player can move to from the bar and add them to their moves.
-	 */
-	public void getAvailableMovesFromBar() {
-		int startSlotPosition = 0;
-		List<Integer> uniqueDieValues = new ArrayList<Integer>();
-
-		/* we never allow moves from the bar and anywhere else, so clear the list of moves out */
-		Moves potentialMoves = getCurrentTurn().getPotentialMoves();
-		potentialMoves.clear();
-		
-		if (getBoard().getBar().containsPlayerPieces(getCurrentTurn().getColor())) {
-			if (getCurrentTurn().getColor() == Constants.BLACK) { startSlotPosition = -1; }
-			else { startSlotPosition = 24; }
-
-			Iterator<SimpleDie> dieIterator = getCurrentTurn().getDice().iterator();
-			while (dieIterator.hasNext()) {
-				SimpleDie die = dieIterator.next();
-				if (!die.isUsed() && !uniqueDieValues.contains(new Integer(die.getValue()))) {
-					/* If we have doubles, we only want to add moves for the first die */
-					uniqueDieValues.add(new Integer(die.getValue()));
-					
-					int dieValue = die.getValue();
-					int dieSlotPosition = startSlotPosition + (getCurrentTurn().getColor() * dieValue);
-					Slot destinationSlot = getBoard().getPlaySlots().get(dieSlotPosition);
-					if (!destinationSlot.isBlocked(getCurrentTurn().getColor())) {
-						Move potentialMove = new Move(getBoard().getBar(), destinationSlot,die, getCurrentTurn().getPlayer());
-						potentialMoves.add(potentialMove);
-					}
-				}			
-			}
-		}
 	}
 
 	public void setStartingColor(int startingColor) {
