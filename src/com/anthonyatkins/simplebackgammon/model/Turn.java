@@ -1,9 +1,11 @@
 package com.anthonyatkins.simplebackgammon.model;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import com.anthonyatkins.simplebackgammon.Constants;
 import com.anthonyatkins.simplebackgammon.exception.InvalidMoveException;
 
 import android.util.Log;
@@ -49,7 +51,7 @@ public class Turn implements Comparable {
 
 	private final Player player;
 	private final Game game;
-	private final GameDice dice;
+	private final SimpleDice dice;
 	private final int color;
 	private final Date created;
 
@@ -58,7 +60,7 @@ public class Turn implements Comparable {
 	public Turn(Player player, Game game, int color) {
 		this.player = player;
 		this.color = color;
-		this.dice = new GameDice(color, this);
+		this.dice = new SimpleDice(color);
 		this.game = game;
 		this.created = new Date();
 		game.getGameLog().add(this);
@@ -67,7 +69,7 @@ public class Turn implements Comparable {
 	public Turn(Player player, Game game, int color, Date created) {
 		this.player = player;
 		this.color = color;
-		this.dice = new GameDice(color, this);
+		this.dice = new SimpleDice(color);
 		this.game = game;
 		this.created = created;
 		game.getGameLog().add(this);
@@ -78,11 +80,13 @@ public class Turn implements Comparable {
 		this.game = game;
 		this.color = existingTurn.getColor();
 		game.getGameLog().add(this);
-		this.dice = new GameDice(existingTurn.dice, this);
+		this.dice = new SimpleDice(existingTurn.dice);
 		this.created = new Date();
 		for (Move move : existingTurn.moves) {
 			new TurnMove(move,this);
 		}
+
+		this.startSlot = existingTurn.getStartSlot();
 	}
 
 	public Turn(Player player, Game game, int color, Date created, SimpleDice dice) {
@@ -90,7 +94,7 @@ public class Turn implements Comparable {
 		this.game = game;
 		this.color = color;
 		this.created = created;
-		this.dice = new GameDice(dice,this);
+		this.dice = new SimpleDice(dice);
 		game.getGameLog().add(this);
 	}
 
@@ -103,19 +107,24 @@ public class Turn implements Comparable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + color;
-		result = prime * result + ((created == null) ? 0 : created.hashCode());
 		result = prime * result + ((dice == null) ? 0 : dice.hashCode());
 		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((moves == null) ? 0 : moves.hashCode());
 		result = prime * result + ((player == null) ? 0 : player.hashCode());
+		result = prime * result
+				+ ((potentialMoves == null) ? 0 : potentialMoves.hashCode());
+		result = prime * result
+				+ ((startSlot == null) ? 0 : startSlot.hashCode());
 		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Turn))
+		if (getClass() != obj.getClass())
 			return false;
 		Turn other = (Turn) obj;
 		if (color != other.color)
@@ -127,17 +136,26 @@ public class Turn implements Comparable {
 			return false;
 		if (id != other.id)
 			return false;
-		if (player == null) {
-			if (other.player != null)
-				return false;
-		} else if (!player.equals(other.player))
-			return false;
 		if (moves == null) {
 			if (other.moves != null)
 				return false;
 		} else if (!moves.equals(other.moves))
 			return false;
-		
+		if (player == null) {
+			if (other.player != null)
+				return false;
+		} else if (!player.equals(other.player))
+			return false;
+		if (potentialMoves == null) {
+			if (other.potentialMoves != null)
+				return false;
+		} else if (!potentialMoves.equals(other.potentialMoves))
+			return false;
+		if (startSlot == null) {
+			if (other.startSlot != null)
+				return false;
+		} else if (!startSlot.equals(other.startSlot))
+			return false;
 		return true;
 	}
 
@@ -172,7 +190,7 @@ public class Turn implements Comparable {
 		return player;
 	}
 
-	public GameDice getDice() {
+	public SimpleDice getDice() {
 		return dice;
 	}
 
@@ -203,8 +221,6 @@ public class Turn implements Comparable {
 	public void pickMove(Move potentialMove) {
 		try {
 			makeMove(potentialMove);
-			clearStartSlot();
-			game.findAllPotentialMoves();
 		} catch (InvalidMoveException e) {
 			Log.e(getClass().getName(), "Can't pick move:",e);
 		}
@@ -216,7 +232,7 @@ public class Turn implements Comparable {
 
 	public void makeMove(int startSlotPosition, int endSlotPosition) throws InvalidMoveException {
 		for (Move potentialMove : getPotentialMoves()) {
-			if (potentialMove.getStartSlot().getPosition() == startSlotPosition && potentialMove.getEndSlot().getPosition() == endSlotPosition) {
+			if (!potentialMove.getDie().isUsed() && potentialMove.getStartSlot().getPosition() == startSlotPosition && potentialMove.getEndSlot().getPosition() == endSlotPosition) {
 				makeMove(potentialMove);
 				return;
 			}
@@ -225,6 +241,8 @@ public class Turn implements Comparable {
 
 
 	public void makeMove(Move move) throws InvalidMoveException {
+		if (move.getDie().isUsed()) throw new InvalidMoveException("Couldn't move using die because it has already been used!");
+		
 		// This shouldn't be needed but just in case.
 		setStartSlot(move.getStartSlot());
 		Piece pieceToMove = null;
@@ -266,10 +284,13 @@ public class Turn implements Comparable {
 			move.getEndSlot().addPiece(pieceToMove);
 			
 			// Flag the die associated with this move as used
+				
 			move.getDie().setUsed();
 
 			new TurnMove(move, this);
+			
 			clearStartSlot();
+			findAllPotentialMoves();
 		}
 		else {
 			Log.e(getClass().getName(), "Couldn't move a piece from slot " + startSlot.getPosition() + " because there are no pieces in that slot.");
@@ -277,11 +298,14 @@ public class Turn implements Comparable {
 		}
 	}
 
-	public void undoMove() {
+	public void undoMove() throws InvalidMoveException {
 		// undo moves from this turn if there are any
 		if (this.getMoves().size() > 0) {
 			// Remove the last move from the list of moves
 			Move lastMove = this.getMoves().get(this.getMoves().size() - 1);
+			
+			if (!lastMove.getDie().isUsed()) throw new InvalidMoveException("Couldn't undo move because it hasn't happened!");
+
 			this.getMoves().remove(lastMove);
 
 			// Undo the last move
@@ -301,9 +325,10 @@ public class Turn implements Comparable {
 			}
 
 			lastMove.getDie().setUsed(false);
+			
+			clearStartSlot();
+			findAllPotentialMoves();
 		}
-
-		clearStartSlot();
 	}
 
 	public boolean movesLeftForDie(GameDie gameDie) {
@@ -334,4 +359,118 @@ public class Turn implements Comparable {
 			setStartSlot(slot);
 		}
 	}
+	
+	/**
+	 * Determine the slots the active player can move from.  Only used for normal slots, and not for the bar or dugouts.
+	 * @return The list of slots that have valid moves.
+	 */
+	public Moves findAllPotentialMoves() {
+		// If we have pieces on the bar, that's our only option at first
+		if (game.getBoard().getBar().containsPlayerPieces(this.getColor())) {
+			this.setStartSlot(game.getBoard().getBar());
+			getAvailableMovesFromBar();
+		}
+		else {
+			potentialMoves.clear();
+			
+			/* this detects all non-bar moves, there should be no others when we run this */
+			List<Integer> uniquePositions = new ArrayList<Integer>();
+			Pieces pieces = this.getColor() == Constants.BLACK ? game.getBoard().getBlackPieces() : game.getBoard().getWhitePieces();
+			Iterator<Piece> pieceIterator = pieces.iterator();
+			while (pieceIterator.hasNext()) {
+				Piece piece = pieceIterator.next();
+				int position = piece.position;
+				if (position >= 0 && position <= 23 && !uniquePositions.contains(position)) { uniquePositions.add(position); }
+			}
+			
+			for (int b=0; b < uniquePositions.size(); b++) {
+				Moves slotMoves = findAvailableMovesFromSlot(game.getBoard().getPlaySlots().get(uniquePositions.get(b)));
+				potentialMoves.addAll(slotMoves);
+			}
+		}
+		
+		return potentialMoves;
+	}
+			
+	/**
+	 * Tag the moves that are possible from a given slot.
+	 * @param slot  The slot to check.
+	 */
+	private Moves findAvailableMovesFromSlot(Slot slot) {
+		Moves slotMoves = new Moves();
+		int slotPosition = slot.getPosition();
+		List<Integer> uniqueDieValues = new ArrayList<Integer>();
+
+		
+		Iterator<SimpleDie> dieIterator = this.getDice().iterator();
+		while (dieIterator.hasNext()) {
+			SimpleDie die = dieIterator.next();
+			if (!die.isUsed() && !uniqueDieValues.contains(new Integer(die.getValue()))) {
+				/* If we have doubles, we only want to add moves for the first die */
+				uniqueDieValues.add(new Integer(die.getValue()));
+				int diePosition = slotPosition + (this.getColor() * die.getValue());
+				if (diePosition >= 0 && diePosition <= 23) {
+						Slot destinationSlot = game.getBoard().getPlaySlots().get(diePosition);
+						if (!destinationSlot.isBlocked(this.getColor())) { 
+							Move potentialMove = new Move(slot,destinationSlot,die, this.getPlayer());
+							slotMoves.add(potentialMove);
+						}
+				}
+				else if (game.playerCanMoveOut()) {
+					// If the piece is in the right position, it can always move out.
+					// If it's the trailing edge of the player's pieces, it can move out with any roll high enough
+					if (this.getColor() == Constants.BLACK) { 
+						
+						if (diePosition == 24 || (game.getBoard().getBlackPieces().first().position == slotPosition && diePosition > 24)) {
+							Move potentialMove = new Move(slot,game.getBoard().getBlackOut(),die, this.getPlayer());
+							slotMoves.add(potentialMove);
+						}
+					}
+					else { 
+						if (diePosition == -1 || (game.getBoard().getWhitePieces().last().position == slotPosition && diePosition < -1)) {
+							Move potentialMove = new Move(slot,game.getBoard().getWhiteOut(),die, this.getPlayer());
+							slotMoves.add(potentialMove);
+						}
+					}
+				}
+			}
+		}
+		
+		return slotMoves;
+	}
+	
+	/**
+	 * Get the list of slots the active player can move to from the bar and add them to their moves.
+	 */
+	private void getAvailableMovesFromBar() {
+		int startSlotPosition = 0;
+		List<Integer> uniqueDieValues = new ArrayList<Integer>();
+
+		/* we never allow moves from the bar and anywhere else, so clear the list of moves out */
+		Moves potentialMoves = this.getPotentialMoves();
+		potentialMoves.clear();
+		
+		if (game.getBoard().getBar().containsPlayerPieces(this.getColor())) {
+			if (this.getColor() == Constants.BLACK) { startSlotPosition = -1; }
+			else { startSlotPosition = 24; }
+
+			Iterator<SimpleDie> dieIterator = this.getDice().iterator();
+			while (dieIterator.hasNext()) {
+				SimpleDie die = dieIterator.next();
+				if (!die.isUsed() && !uniqueDieValues.contains(new Integer(die.getValue()))) {
+					/* If we have doubles, we only want to add moves for the first die */
+					uniqueDieValues.add(new Integer(die.getValue()));
+					
+					int dieValue = die.getValue();
+					int dieSlotPosition = startSlotPosition + (this.getColor() * dieValue);
+					Slot destinationSlot = game.getBoard().getPlaySlots().get(dieSlotPosition);
+					if (!destinationSlot.isBlocked(this.getColor())) {
+						Move potentialMove = new Move(game.getBoard().getBar(), destinationSlot,die, this.getPlayer());
+						potentialMoves.add(potentialMove);
+					}
+				}			
+			}
+		}
+	}
+
 }

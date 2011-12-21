@@ -1,6 +1,11 @@
 package com.anthonyatkins.simplebackgammon.model;
 
 public class SimpleDie implements Comparable{
+	@Override
+	public String toString() {
+		return "SimpleDie [value=" + value + ", color=" + color + ", used="+ used + "]";
+	}
+
 	private int value;
 	private int color;
 	
@@ -19,6 +24,7 @@ public class SimpleDie implements Comparable{
 	public SimpleDie(SimpleDie die) {
 		this.value = die.getValue();
 		this.color = die.getColor();
+		this.used = die.isUsed();
 	}
 
 	public void roll() {

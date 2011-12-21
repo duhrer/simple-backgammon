@@ -4,11 +4,13 @@ import java.util.Iterator;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 
 import com.anthonyatkins.simplebackgammon.Constants;
+import com.anthonyatkins.simplebackgammon.exception.InvalidMoveException;
 import com.anthonyatkins.simplebackgammon.model.Dugout;
 import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.Move;
@@ -173,7 +175,6 @@ public class GameController {
 				
 				gameView.getGame().getCurrentTurn().setSelectedMove(null);
 				clearSelectedSlots();
-				gameView.getGame().findAllPotentialMoves();
 				Moves potentialMoves = gameView.getGame().getCurrentTurn().getPotentialMoves();
 				
 				if (potentialMoves.size() > 0) {
@@ -261,7 +262,7 @@ public class GameController {
 		}
 	}
 
-	public void undoMove() {
+	public void undoMove() throws InvalidMoveException {
 		gameView.getGame().getCurrentTurn().undoMove();
 
 		// Hide any messages that may have been displayed in the previous state

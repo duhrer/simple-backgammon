@@ -6,6 +6,11 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
+	@Override
+	public String toString() {
+		return "SimpleDice [color=" + color + ", dice="+super.toString()+"]";
+	}
+
 	private int color;
 
 	public SimpleDice(int color) {
@@ -22,7 +27,7 @@ public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
 		this.color = existingDice.color;
 		
 		for (SimpleDie die: existingDice) {
-			this.add(new SimpleDie(die.getValue(),die.getColor()));
+			this.add(new SimpleDie(die));
 		}
 	}
 

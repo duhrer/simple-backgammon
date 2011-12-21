@@ -3,6 +3,12 @@ package com.anthonyatkins.simplebackgammon.model;
 import java.util.Date;
 
 public class Move implements Comparable {
+	@Override
+	public String toString() {
+		return "Move [startSlot=" + startSlot + ", endSlot=" + endSlot
+				+ ", die=" + die + ", pieceBumped=" + pieceBumped + "]";
+	}
+
 	// Database setup information
 	public static final String _ID            = "_id";
 	public static final String TURN 		  = "turn";

@@ -67,7 +67,8 @@ public class DbUtils {
 		// if there were no turns saved, this is a corrupt game, and we'll have to throw an exception
 		if (game.getGameLog().size() == 0) {
 			Log.e("DbUtils.loadGameFromCursor()", "There were no turn saved for this game, adding a new turn to the game log to avoid a crash");
-			new Turn(startingColor == Constants.BLACK ? game.getBlackPlayer() : game.getWhitePlayer(),game,startingColor);
+			Turn turn = new Turn(startingColor == Constants.BLACK ? game.getBlackPlayer() : game.getWhitePlayer(),game,startingColor);
+			turn.findAllPotentialMoves();
 		}
 		
 		int gameState = cursor.getInt(cursor.getColumnIndex(Game.GAME_STATE));
@@ -359,10 +360,10 @@ public class DbUtils {
 					SimpleDice dice = new SimpleDice(d1Value,d2Value,color);
 					Turn newTurn = new Turn(player,game,color,created,dice);
 					newTurn.setId(turnId);
+					newTurn.findAllPotentialMoves();
+					
 					if (startSlot != Slot.INVALID_POSITION) newTurn.setStartSlot(startSlot);
 					
-					game.findAllPotentialMoves();
-
 					loadMovesByTurn(newTurn, game, db);
 				}
 			}

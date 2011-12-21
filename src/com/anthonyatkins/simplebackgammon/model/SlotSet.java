@@ -14,8 +14,6 @@ public class SlotSet extends TreeSet<Slot> {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!super.equals(obj))
-			return false;
 		if (!(obj instanceof SlotSet))
 			return false;
 		SlotSet other = (SlotSet) obj;

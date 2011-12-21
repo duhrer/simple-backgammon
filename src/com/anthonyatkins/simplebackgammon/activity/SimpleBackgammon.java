@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
@@ -20,6 +21,7 @@ import com.anthonyatkins.simplebackgammon.R;
 import com.anthonyatkins.simplebackgammon.controller.GameController;
 import com.anthonyatkins.simplebackgammon.db.DbOpenHelper;
 import com.anthonyatkins.simplebackgammon.db.DbUtils;
+import com.anthonyatkins.simplebackgammon.exception.InvalidMoveException;
 import com.anthonyatkins.simplebackgammon.model.Game;
 import com.anthonyatkins.simplebackgammon.model.Match;
 import com.anthonyatkins.simplebackgammon.model.Player;
@@ -185,12 +187,12 @@ public class SimpleBackgammon extends Activity {
 				return true;
 	
 			case Game.MOVE_PICK_SOURCE:
-				gameController.undoMove();
-				gameController.setGameState(Game.MOVE_PICK_SOURCE);
-				return true;
-			
-			case Game.NEW_TURN:
-				gameController.undoMove();
+				try {
+					gameController.undoMove();
+				} catch (InvalidMoveException e) {
+					Log.e("handleUndo()", "Unable to undo move.", e);
+				}
+				
 				gameController.setGameState(Game.MOVE_PICK_SOURCE);
 				return true;
 		}

@@ -17,8 +17,6 @@ public class GameLog extends ArrayList<Turn> {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!super.equals(obj))
-			return false;
 		if (!(obj instanceof GameLog))
 			return false;
 		GameLog other = (GameLog) obj;
