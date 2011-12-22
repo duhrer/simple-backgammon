@@ -3,6 +3,7 @@ package com.anthonyatkins.simplebackgammon.model;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
@@ -129,11 +130,9 @@ public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
 			return false;
 		}
 		else {
-			Iterator<SimpleDie> myDieIterator = this.iterator();
-			Iterator<SimpleDie> otherDieIterator = other.iterator();
-			while (myDieIterator.hasNext()) {
-				if (!myDieIterator.next().equals(otherDieIterator.next())) return false;
-			}
+			SortedSet<SimpleDie> mySortedDice = new TreeSet<SimpleDie>(this);
+			SortedSet<SimpleDie> otherSortedDice = new TreeSet<SimpleDie>(other);
+			if (!mySortedDice.equals(otherSortedDice)) return false;
 		}
 		return true;
 	}
@@ -148,6 +147,89 @@ public class SimpleDice extends ArrayList<SimpleDie> implements Comparable {
 		if (this.get(0).getValue() == this.get(1).getValue() && this.get(0).getValue() != 0) {
 			this.add(new SimpleDie(this.get(0).getValue(), this.color));
 			this.add(new SimpleDie(this.get(0).getValue(), this.color));
+		}
+	}
+	
+	public SimpleDice getDiceByPips(int pips) {
+		return getDiceByPips(pips,false);
+	}
+	
+	public SimpleDice getDiceByPips(int pips, boolean isMovingOut) {
+		return getDiceByPips(pips,isMovingOut,false);
+	}
+	
+	protected SimpleDice getDiceByPips(int pips, boolean isMovingOut, boolean used) {
+		SimpleDice dice = new SimpleDice(this.color);
+		dice.clear();
+
+		int runningTotal = 0;
+		int position = 0;
+		// If we're moving out, we can exceed the roll on the dice required
+		if (isMovingOut) {
+			// One pass through for single roll moves
+			for (SimpleDie die : this) {
+				if (die.isUsed() != used) { continue; }
+				if (pips == die.getValue()) {
+					dice.add(die);
+					break;
+				}
+			}
+			
+			// Only continue if we haven't already found a solution
+			if (dice.size() == 0) {
+				for (SimpleDie die : this) {
+					if (die.isUsed() != used) { continue; }
+					runningTotal += die.getValue();
+					position++;
+					
+					if (runningTotal == pips) {
+						for (int a=0; a<position;a++) {
+							dice.add(this.get(a));
+						}
+						break;
+					}
+				}
+			}
+		}
+		// Otherwise, it's a much simpler process
+		else {
+			for (SimpleDie die : this) {
+				if (die.isUsed() != used) { continue; }
+				if (pips == die.getValue()) {
+					dice.add(die);
+					break;
+				}
+				
+				runningTotal += die.getValue();
+				position++;
+				
+				if (runningTotal == pips) {
+					for (int a=0; a<position;a++) {
+						dice.add(this.get(a));
+					}
+					break;
+				}
+			}
+		}
+		
+		return dice;
+	}
+
+	// Only used for "undo"
+	public SimpleDice getUsedDiceByPips(int pips) {
+		return getUsedDiceByPips(pips,false);
+	}
+	public SimpleDice getUsedDiceByPips(int pips, boolean isMovingOut) {
+		return getDiceByPips(pips,isMovingOut,true);
+	}
+
+	public void setUsed() {
+		setUsed(true);
+	}
+
+	public void setUsed(boolean isUsed) {
+		for (SimpleDie die : this) {
+			die.setUsed(isUsed);
 		}
 	}
 }

@@ -81,7 +81,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 							}
 							
 							if (incomingMove != null) {
-								updateImage(incomingMove.getDie());
+								updateImage(incomingMove.getPips());
 								if (imageResource != 0) {
 									c.drawBitmap(BitmapFactory.decodeResource(getResources(),imageResource), null, new Rect(centerX-pieceRadius,centerY-pieceRadius,centerX+pieceRadius,centerY+pieceRadius), theme.potentialMovePaint);
 								}
@@ -145,9 +145,9 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 		return (this.slot.getPosition() - ((SimpleSlotView) anotherSlotView).slot.getPosition());
 	}
 	
-	private void updateImage(SimpleDie die) {
+	private void updateImage(int i) {
 		if (this.slot.getGame().getCurrentTurn().getColor() == Constants.BLACK) {
-			switch (die.getValue()) {
+			switch (i) {
 				case 1:
 					setImageResource(com.anthonyatkins.simplebackgammon.R.drawable.bc1);
 					break;
@@ -166,12 +166,13 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 				case 6:
 					setImageResource(com.anthonyatkins.simplebackgammon.R.drawable.bc6);
 					break;
+				//FIXME:  When we start having multi-moves, we'll need logic here to display the dice that will be used
 				default:
 					setImageResource(com.anthonyatkins.simplebackgammon.R.drawable.bcu);
 			}
 		}
 		else {
-			switch (die.getValue()) {
+			switch (i) {
 				case 1:
 					setImageResource(com.anthonyatkins.simplebackgammon.R.drawable.wc1);
 					break;
@@ -190,6 +191,7 @@ public class SimpleSlotView extends View implements Comparable<SimpleSlotView> {
 				case 6:
 					setImageResource(com.anthonyatkins.simplebackgammon.R.drawable.wc6);
 					break;
+				//FIXME:  When we start having multi-moves, we'll need logic here to display the dice that will be used
 				default:
 					setImageResource(com.anthonyatkins.simplebackgammon.R.drawable.wcu);
 			}

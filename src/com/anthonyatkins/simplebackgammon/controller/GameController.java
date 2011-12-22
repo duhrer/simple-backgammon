@@ -172,9 +172,8 @@ public class GameController {
 			case Game.MOVE_PICK_SOURCE:
 				removeAllListeners();
 				clearDetectedMoves();
-				
-				gameView.getGame().getCurrentTurn().setSelectedMove(null);
 				clearSelectedSlots();
+				gameView.getGame().getCurrentTurn().findAllPotentialMoves();
 				Moves potentialMoves = gameView.getGame().getCurrentTurn().getPotentialMoves();
 				
 				if (potentialMoves.size() > 0) {
@@ -209,7 +208,8 @@ public class GameController {
 				removeAllListeners();
 
 				// If we started on the bar, we can touch the bar to cancel our move.
-				if (getStartSlot() != null && getStartSlot().equals(gameView.getGame().getBoard().getBar())) {
+				if (gameView.getGame().getBoard().getBar().containsPlayerPieces(gameView.getGame().getCurrentTurn().getColor())) {
+					setStartSlot(gameView.getGame().getBoard().getBar());
 					addListener(gameView.getBoardView().getCombinedBarView().getBarView(),new ChangeStateListener(Game.MOVE_PICK_SOURCE));
 				}
 				// otherwise, wire up the possible destination slots based on the source slot

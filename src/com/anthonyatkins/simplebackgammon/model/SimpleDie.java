@@ -86,6 +86,12 @@ public class SimpleDie implements Comparable{
 
 		SimpleDie otherDie = (SimpleDie) another;
 
+		if (this.equals(another)) return 0;
+
+		if (this.used != otherDie.used) {
+			return (this.used == true ? 1 : 0) - (otherDie.used == true ? 1 : 0);
+		}
+		
 		return this.value - otherDie.value;
 	}
 }
