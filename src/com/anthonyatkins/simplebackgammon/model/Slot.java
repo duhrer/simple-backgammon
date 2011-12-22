@@ -5,6 +5,11 @@ import java.util.Iterator;
 
 public class Slot implements Comparable<Slot>{
 	public final static int UP = -1;
+	@Override
+	public String toString() {
+		return "Slot [position=" + position + "]";
+	}
+
 	public final static int DOWN = 1;
 	public final static int NONE = 0;
 	

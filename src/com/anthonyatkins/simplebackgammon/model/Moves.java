@@ -16,8 +16,6 @@ public class Moves extends ArrayList<Move> implements Comparable<Move> {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!super.equals(obj))
-			return false;
 		if (!(obj instanceof Moves))
 			return false;
 		Moves other = (Moves) obj;

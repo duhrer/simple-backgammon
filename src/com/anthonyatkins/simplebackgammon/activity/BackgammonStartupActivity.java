@@ -46,7 +46,6 @@ public class BackgammonStartupActivity extends Activity {
 		long gameId = DbUtils.getLastUnfinishedGameId(db);
 		db.close();
 
-		
 		// Start the main activity (with an existing game ID if there is one
 		Intent intent = new Intent(this, SimpleBackgammon.class);
 		Bundle bundle = new Bundle();
@@ -54,14 +53,12 @@ public class BackgammonStartupActivity extends Activity {
 		// FIXME:  If there's no existing game in progress, prompt to create/pick players, create a match, etc.
 
 		// FIXME:  Replace with data set on this screen
-		bundle.putInt(BLACK_PLAYER_KEY, 1);
-		bundle.putInt(WHITE_PLAYER_KEY, 2);
+		bundle.putLong(BLACK_PLAYER_KEY, 1);
+		bundle.putLong(WHITE_PLAYER_KEY, 2);
 		bundle.putInt(POINTS_TO_WIN_KEY, 1);
 		
 		// FIXME:  Replace this with the starting player determined by rolling the dice
 		bundle.putInt(START_COLOR_KEY, Color.WHITE);
-		
-		
 		
 		if (gameId != -1) { 
 			bundle.putLong(GAME_ID_KEY, gameId);
@@ -97,7 +94,6 @@ public class BackgammonStartupActivity extends Activity {
 				// FIXME:  The game was conceded, tally it up as a victory for the right player
 				// FIXME:  Here's where we should check to see if the match is finished and prompt to start a new match, etc.
 			}
-			
 		}
 	}
 	

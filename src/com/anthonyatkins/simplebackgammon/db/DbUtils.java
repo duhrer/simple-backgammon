@@ -14,7 +14,6 @@ import com.anthonyatkins.simplebackgammon.model.Match;
 import com.anthonyatkins.simplebackgammon.model.Move;
 import com.anthonyatkins.simplebackgammon.model.Player;
 import com.anthonyatkins.simplebackgammon.model.SimpleDice;
-import com.anthonyatkins.simplebackgammon.model.SimpleDie;
 import com.anthonyatkins.simplebackgammon.model.Slot;
 import com.anthonyatkins.simplebackgammon.model.Turn;
 import com.anthonyatkins.simplebackgammon.model.TurnMove;
@@ -116,25 +115,19 @@ public class DbUtils {
 
 					boolean pieceBumped = cursor.getInt(cursor.getColumnIndex(Move.PIECE_BUMPED)) == 1 ? true : false;
 
-					int dieValue = cursor.getInt(cursor.getColumnIndex(Move.DIE));
+					int pips = cursor.getInt(cursor.getColumnIndex(Move.PIPS));
 					
 					int createdTimestamp = cursor.getInt(cursor.getColumnIndex(Move.CREATED));
 					Date created = new Date((long) createdTimestamp);
 					
-					// FIXME:  Get the first matching die from this turn and use it for the move
-					for (SimpleDie die : turn.getDice()) {
-						if (die.getValue() == dieValue && !die.isUsed()) {
-							try {
-								Move move = new Move(startSlot, endSlot, die, turn.getPlayer(), created);
-								move.setPieceBumped(pieceBumped);
-								turn.makeMove(move);
-								break;
-							} catch (InvalidMoveException e) {
-								Log.e("loadGameFromCursor()", "Error replaying moves from stored game...", e);
-							}
-						}
+					try {
+						Move move = new Move(startSlot, endSlot, pips, turn.getPlayer(), created);
+						move.setPieceBumped(pieceBumped);
+						turn.makeMove(move);
+						break;
+					} catch (InvalidMoveException e) {
+						Log.e("loadGameFromCursor()", "Error replaying moves from stored game...", e);
 					}
-					
 				}
 			}
 		}
@@ -224,10 +217,11 @@ public class DbUtils {
 		
 		values.put(Move.TURN, turn.getId());
 		values.put(Move.PLAYER, move.getPlayer().getId());
-		values.put(Move.DIE, move.getDie().getValue());
+		values.put(Move.PIPS, move.getPips());
 		values.put(Move.START_SLOT, move.getStartSlot().getPosition());
 		values.put(Move.END_SLOT, move.getEndSlot().getPosition());
 		values.put(Move.CREATED, move.getCreated().getTime());
+		values.put(Move.PIECE_BUMPED, move.isPieceBumped());
 		
 		if (move.getId() != -1) {
 			values.put(Move._ID, move.getId());

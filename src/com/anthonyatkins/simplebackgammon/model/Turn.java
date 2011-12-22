@@ -202,10 +202,6 @@ public class Turn implements Comparable {
 		return potentialMoves.size() > 0;
 	}
 
-	public void setSelectedMove(Move potentialMove) {
-
-	}
-
 	public Slot getStartSlot() {
 		return startSlot;
 	}
@@ -232,16 +228,23 @@ public class Turn implements Comparable {
 
 	public void makeMove(int startSlotPosition, int endSlotPosition) throws InvalidMoveException {
 		for (Move potentialMove : getPotentialMoves()) {
-			if (!potentialMove.getDie().isUsed() && potentialMove.getStartSlot().getPosition() == startSlotPosition && potentialMove.getEndSlot().getPosition() == endSlotPosition) {
-				makeMove(potentialMove);
-				return;
+			SimpleDice dice = getDice().getDiceByPips(potentialMove.getPips());
+			if (dice.size() >= 0 ) {
+				if (potentialMove.getStartSlot().getPosition() == startSlotPosition && potentialMove.getEndSlot().getPosition() == endSlotPosition) {
+					makeMove(potentialMove);
+					return;
+				}
 			}
+			
 		}
+		
+		throw new InvalidMoveException("Can't move from slot " + startSlotPosition + " to " + endSlotPosition + ", no matching potential moves found.");
 	}
 
 
 	public void makeMove(Move move) throws InvalidMoveException {
-		if (move.getDie().isUsed()) throw new InvalidMoveException("Couldn't move using die because it has already been used!");
+		SimpleDice dice = getDice().getDiceByPips(move.getPips());
+		if (dice.size() == 0) throw new InvalidMoveException("Couldn't move because there are no dice left that can make this move!");
 		
 		// This shouldn't be needed but just in case.
 		setStartSlot(move.getStartSlot());
@@ -284,9 +287,7 @@ public class Turn implements Comparable {
 			move.getEndSlot().addPiece(pieceToMove);
 			
 			// Flag the die associated with this move as used
-				
-			move.getDie().setUsed();
-
+			dice.setUsed();
 			new TurnMove(move, this);
 			
 			clearStartSlot();
@@ -303,10 +304,13 @@ public class Turn implements Comparable {
 		if (this.getMoves().size() > 0) {
 			// Remove the last move from the list of moves
 			Move lastMove = this.getMoves().get(this.getMoves().size() - 1);
-			
-			if (!lastMove.getDie().isUsed()) throw new InvalidMoveException("Couldn't undo move because it hasn't happened!");
-
 			this.getMoves().remove(lastMove);
+			
+			Slot dugout = color == Constants.BLACK ? game.getBoard().getBlackOut() : game.getBoard().getWhiteOut();
+			SimpleDice dice = getDice().getUsedDiceByPips(lastMove.getPips(), lastMove.getEndSlot().equals(dugout) ? true : false);
+			
+			if (dice.size() == 0) throw new InvalidMoveException("Couldn't undo move because there are no used dice that could have made it.");
+
 
 			// Undo the last move
 			Piece undoPiece = lastMove.getEndSlot().removePiece();
@@ -324,7 +328,7 @@ public class Turn implements Comparable {
 				}
 			}
 
-			lastMove.getDie().setUsed(false);
+			dice.setUsed(false);
 			
 			clearStartSlot();
 			findAllPotentialMoves();
@@ -333,7 +337,8 @@ public class Turn implements Comparable {
 
 	public boolean movesLeftForDie(GameDie gameDie) {
 		for (Move move : potentialMoves) {
-			if (move.getDie().equals(gameDie))
+			// FIXME : Right now this only works for single die moves.  This needs to be updated for multi-die moves
+			if (move.getPips() == gameDie.getValue())
 				return true;
 		}
 
@@ -412,7 +417,8 @@ public class Turn implements Comparable {
 				if (diePosition >= 0 && diePosition <= 23) {
 						Slot destinationSlot = game.getBoard().getPlaySlots().get(diePosition);
 						if (!destinationSlot.isBlocked(this.getColor())) { 
-							Move potentialMove = new Move(slot,destinationSlot,die, this.getPlayer());
+							// FIXME: For now, the number of pips is always equal to a single die face. It should eventually be possible to have multi-die moves
+							Move potentialMove = new Move(slot,destinationSlot,die.getValue(), this.getPlayer());
 							slotMoves.add(potentialMove);
 						}
 				}
@@ -422,13 +428,13 @@ public class Turn implements Comparable {
 					if (this.getColor() == Constants.BLACK) { 
 						
 						if (diePosition == 24 || (game.getBoard().getBlackPieces().first().position == slotPosition && diePosition > 24)) {
-							Move potentialMove = new Move(slot,game.getBoard().getBlackOut(),die, this.getPlayer());
+							Move potentialMove = new Move(slot,game.getBoard().getBlackOut(),die.getValue(), this.getPlayer());
 							slotMoves.add(potentialMove);
 						}
 					}
 					else { 
 						if (diePosition == -1 || (game.getBoard().getWhitePieces().last().position == slotPosition && diePosition < -1)) {
-							Move potentialMove = new Move(slot,game.getBoard().getWhiteOut(),die, this.getPlayer());
+							Move potentialMove = new Move(slot,game.getBoard().getWhiteOut(),die.getValue(), this.getPlayer());
 							slotMoves.add(potentialMove);
 						}
 					}
@@ -465,12 +471,12 @@ public class Turn implements Comparable {
 					int dieSlotPosition = startSlotPosition + (this.getColor() * dieValue);
 					Slot destinationSlot = game.getBoard().getPlaySlots().get(dieSlotPosition);
 					if (!destinationSlot.isBlocked(this.getColor())) {
-						Move potentialMove = new Move(game.getBoard().getBar(), destinationSlot,die, this.getPlayer());
+						// FIXME: For now, pips are equal to the value of the die moving the piece out.  Eventually, we will have combo moves
+						Move potentialMove = new Move(game.getBoard().getBar(), destinationSlot,die.getValue(), this.getPlayer());
 						potentialMoves.add(potentialMove);
 					}
 				}			
 			}
 		}
 	}
-
 }
